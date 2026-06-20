@@ -258,6 +258,22 @@
     ],
     "package": "Driver Assist Package"
   },
+  "Changan Z6": {
+    "platform": "CHANGAN_Z6",
+    "make": "Changan",
+    "brand": "changan",
+    "model": "Z6",
+    "year": [],
+    "package": "All"
+  },
+  "Changan Z6 iDD": {
+    "platform": "CHANGAN_Z6_IDD",
+    "make": "Changan",
+    "brand": "changan",
+    "model": "Z6 iDD",
+    "year": [],
+    "package": "All"
+  },
   "Chevrolet Bolt EUV 2022-23": {
     "platform": "CHEVROLET_BOLT_EUV",
     "make": "Chevrolet",
