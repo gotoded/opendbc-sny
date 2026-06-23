@@ -71,11 +71,11 @@ static int changan_desired_angle_last = 0;
 
 // ── TX messages ───────────────────────────────────────────────────────────────
 static const CanMsg CHANGAN_TX_MSGS[] = {
-  {MSG_GW_1BA_TX, 0, 32},  // EPS lateral angle command
-  {MSG_GW_17E_TX, 2, 8},   // EPS relay (bus 2 = cam)
-  {MSG_GW_244_TX, 0, 32},  // ACC longitudinal
-  {MSG_GW_307_TX, 0, 64},  // ACC display relay
-  {MSG_GW_31A_TX, 0, 64},  // IACC mode relay
+  {MSG_GW_1BA_TX, 0, 32, false},  // EPS lateral angle command
+  {MSG_GW_17E_TX, 2, 8,  true},   // EPS relay (bus 2 = cam)
+  {MSG_GW_244_TX, 0, 32, false},  // ACC longitudinal
+  {MSG_GW_307_TX, 0, 64, false},  // ACC display relay
+  {MSG_GW_31A_TX, 0, 64, false},  // IACC mode relay
 };
 
 // ── RX allowed messages ───────────────────────────────────────────────────────
