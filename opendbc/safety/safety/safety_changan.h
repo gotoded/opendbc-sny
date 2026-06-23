@@ -173,26 +173,22 @@ static void changan_rx_hook(const CANPacket_t *to_push) {
 //   bus 0 (ESC/pt) → forward to bus 2 (MPC/cam): never (openpilot injects)
 //   bus 2 (cam) → forward to bus 0 (ESC/pt): all except TX msgs intercepted by openpilot
 //   bus 1 (MRR) → not forwarded
-static int changan_fwd_hook(int bus_num, int addr) {
-  int bus_fwd = -1;  // default: no forward
+static bool changan_fwd_hook(int bus_num, int addr) {
+  // return true to block forwarding
+  bool block = false;
 
   if (bus_num == 2) {
-    // Cam → pt: forward everything except what openpilot replaces
-    const bool blocked = ((addr == MSG_GW_1BA_TX) ||
-                          (addr == MSG_GW_244_TX) ||
-                          (addr == MSG_GW_307_TX) ||
-                          (addr == MSG_GW_31A_TX));
-    if (!blocked) {
-      bus_fwd = 0;
-    }
+    // Cam → pt: block messages that openpilot replaces
+    block = ((addr == MSG_GW_1BA_TX) ||
+             (addr == MSG_GW_244_TX) ||
+             (addr == MSG_GW_307_TX) ||
+             (addr == MSG_GW_31A_TX));
   } else if (bus_num == 0) {
-    // pt → cam: forward GW_17E (EPS relay) to bus 2
-    if (addr == MSG_GW_17E) {
-      bus_fwd = 2;
-    }
+    // pt → cam: block EPS relay (openpilot modifies and sends on bus 2)
+    block = (addr == MSG_GW_17E);
   }
 
-  return bus_fwd;
+  return block;
 }
 
 // ── Safety model registration ─────────────────────────────────────────────────
