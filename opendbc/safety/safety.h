@@ -24,6 +24,7 @@
 #include "safety/safety_elm327.h"
 #include "safety/safety_body.h"
 #include "safety/safety_byd.h"
+#include "safety/safety_changan.h"
 
 // CAN-FD only safety modes
 #ifdef CANFD
@@ -60,6 +61,7 @@
 #define SAFETY_RIVIAN 33U
 #define SAFETY_VOLKSWAGEN_MEB 34U
 #define SAFETY_BYD 35U
+#define SAFETY_CHANGAN 36U
 
 uint32_t GET_BYTES(const CANPacket_t *msg, int start, int len) {
   uint32_t ret = 0U;
@@ -427,6 +429,7 @@ int set_safety_hooks(uint16_t mode, uint16_t param) {
     {SAFETY_FORD, &ford_hooks},
     {SAFETY_RIVIAN, &rivian_hooks},
     {SAFETY_BYD, &byd_hooks},
+    {SAFETY_CHANGAN, &changan_hooks},
 #ifdef CANFD
     {SAFETY_HYUNDAI_CANFD, &hyundai_canfd_hooks},
 #endif
