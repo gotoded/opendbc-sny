@@ -2,7 +2,8 @@ import copy
 from opendbc.car.common.conversions import Conversions as CV
 from opendbc.car.common.filter_simple import FirstOrderFilter
 from opendbc.car import Bus, structs, DT_CTRL
-from opendbc.can import CANDefine, CANParser
+from opendbc.can.can_define import CANDefine
+from opendbc.can.parser import CANParser
 from opendbc.car.interfaces import CarStateBase
 from opendbc.car.changan.values import CAR, DBC, STEER_THRESHOLD, EPS_SCALE
 
