@@ -34,7 +34,7 @@ BS_:
 
 BU_: XXX
 
-BO_ 80 GW_50: 8 XXX
+BO_ 80 GW_50: 4 XXX
  SG_ SRS_CopilotBuckleSwitchStatus : 12|1@0+ (1,0) [0|1] "" XXX
  SG_ SRS_DriverBuckleSwitchStatus : 14|1@0+ (1,0) [0|1] "" XXX
  SG_ COUNTER : 27|4@0+ (1,0) [0|15] "" XXX

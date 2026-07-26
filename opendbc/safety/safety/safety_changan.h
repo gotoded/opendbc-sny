@@ -28,7 +28,7 @@
 // STEER_MAX from values.py = 980 deg
 #define CHANGAN_STEER_ANGLE_MAX 9800    // 980 deg * 10
 // Angle rate limit: 1.4 deg/frame (100Hz) = 14 raw/frame (from ANGLE_LIMITS in values.py)
-#define CHANGAN_STEER_ANGLE_RATE 140    // 1.4 deg * 100 = 140 raw/s at 100Hz => 14/frame
+#define CHANGAN_STEER_ANGLE_RATE 14     // 1.4 deg * 10 = 14 raw/frame
 
 // ── Acceleration limits ───────────────────────────────────────────────────────
 // ACC_ACCTargetAcceleration: factor 0.05 m/s² per LSB
@@ -83,7 +83,9 @@ static const CanMsg CHANGAN_TX_MSGS[] = {
 // ── RX allowed messages ───────────────────────────────────────────────────────
 static RxCheck changan_rx_checks[] = {
   // bus 0 (pt)
-  {.msg = {{MSG_GW_50,   0, 8,  .ignore_checksum = true, .ignore_counter = true, .frequency = 10U}, {0}, {0}}},
+  {.msg = {{MSG_GW_50,   0, 8,  .ignore_checksum = true, .ignore_counter = true, .frequency = 10U},
+           {MSG_GW_50,   0, 4,  .ignore_checksum = true, .ignore_counter = true, .frequency = 10U},
+           {0}}},
   {.msg = {{MSG_GW_170,  0, 8,  .ignore_checksum = true, .ignore_counter = true, .frequency = 100U}, {0}, {0}}},
   {.msg = {{MSG_GW_17E,  0, 8,  .ignore_checksum = true, .ignore_counter = true, .frequency = 100U}, {0}, {0}}},
   {.msg = {{MSG_GW_180,  0, 8,  .ignore_checksum = true, .ignore_counter = true, .frequency = 100U}, {0}, {0}}},
