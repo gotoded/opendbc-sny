@@ -17,7 +17,12 @@ class CarState(CarStateBase):
     super().__init__(CP)
     can_define = CANDefine(DBC[CP.carFingerprint][Bus.pt])
 
-    self.shifter_values = can_define.dv["GW_338"]["TCU_GearForDisplay"]
+    if self.CP.carFingerprint == CAR.CHANGAN_Z6:
+      self.shifter_values = can_define.dv["GW_338"]["TCU_GearForDisplay"]
+    elif self.CP.carFingerprint == CAR.CHANGAN_Z6_IDD:
+      self.shifter_values = can_define.dv["GW_338"]["TCU_GearForDisplay"]
+    elif self.CP.carFingerprint == CAR.CHANGAN_UNI_T:
+      self.shifter_values = can_define.dv["GW_320"]["TCU_GearForDisplay"]
     self.eps_torque_scale = EPS_SCALE[CP.carFingerprint] / 100.0
     self.cluster_speed_hyst_gap = CV.KPH_TO_MS / 2.0
     self.cluster_min_speed = CV.KPH_TO_MS / 2.0
@@ -87,6 +92,14 @@ class CarState(CarStateBase):
       ret.gasPressed = cp.vl["GW_1C6"]["EMS_RealAccPedal"] != 0
       self.steeringPressedMin = 1
       self.steeringPressedMax = 3
+      ret.leftBlindspot = False
+      ret.rightBlindspot = False
+    elif self.CP.carFingerprint == CAR.CHANGAN_UNI_T:
+      can_gear = int(cp.vl["GW_320"]["TCU_GearForDisplay"])
+      ret.brakePressed = cp.vl["GW_196"]["EMS_BrakePedalStatus"] != 0
+      ret.gasPressed = cp.vl["GW_196"]["EMS_RealAccPedal"] != 0
+      self.steeringPressedMin = 1
+      self.steeringPressedMax = 6
       ret.leftBlindspot = False
       ret.rightBlindspot = False
     else:
@@ -180,12 +193,20 @@ class CarState(CarStateBase):
       ("GW_17E", 0),
       ("GW_170", 0),
       ("GW_180", 0),
-      ("GW_338", 0),
+      ("GW_196", 0),
+      ("GW_1A6", 0),
+      ("GW_1C6", 0),
+      ("GW_24F", 0),
+      ("GW_28C", 0),
       ("GW_1BA", 0),
       ("GW_244", 0),
       ("GW_307", 0),
       ("GW_31A", 0),
     ]
+    if CP.carFingerprint == CAR.CHANGAN_UNI_T:
+      pt_messages.append(("GW_320", 0))
+    else:
+      pt_messages.append(("GW_338", 0))
     cam_messages = [
       ("GW_244", 0),
       ("GW_1BA", 0),

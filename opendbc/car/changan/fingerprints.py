@@ -180,4 +180,5 @@ FW_VERSIONS = {
     ],
   },
   CAR.CHANGAN_Z6_IDD: {},
+  CAR.CHANGAN_UNI_T: {},
 }

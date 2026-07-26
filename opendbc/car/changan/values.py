@@ -46,6 +46,7 @@ class ChanganSafetyFlags(IntFlag):
   CHANGAN_Z6_FLAG = 0x1
   CHANGAN_Z6_IDD_FLAG = 0x4
   IDD_VARIANT = 0x8
+  CHANGAN_UNI_T_FLAG = 0x10
 
 
 class ChanganFlags(IntFlag):
@@ -63,6 +64,11 @@ class ChanganPlatformConfig(PlatformConfig):
   dbc_dict: DbcDict = field(default_factory=lambda: {Bus.pt: "changan_pt"})
 
 
+@dataclass
+class ChanganUnitPlatformConfig(PlatformConfig):
+  dbc_dict: DbcDict = field(default_factory=lambda: {Bus.pt: "changan_unit_pt"})
+
+
 class CAR(Platforms):
   CHANGAN_Z6 = ChanganPlatformConfig(
     [
@@ -76,6 +82,13 @@ class CAR(Platforms):
       ChanganCarDocs("Changan Z6 Idd"),
     ],
     CarSpecs(mass=2205, wheelbase=2.80, steerRatio=15, tireStiffnessFactor=0.444),
+  )
+
+  CHANGAN_UNI_T = ChanganUnitPlatformConfig(
+    [
+      ChanganCarDocs("Changan UNI-T 2022"),
+    ],
+    CarSpecs(mass=2205, wheelbase=2.71, steerRatio=15, tireStiffnessFactor=0.444),
   )
 
 
@@ -95,4 +108,4 @@ EPS_SCALE = defaultdict(lambda: 73)
 
 DBC = CAR.create_dbc_map()
 
-NO_STOP_TIMER_CAR = {CAR.CHANGAN_Z6, CAR.CHANGAN_Z6_IDD}
+NO_STOP_TIMER_CAR = {CAR.CHANGAN_Z6, CAR.CHANGAN_Z6_IDD, CAR.CHANGAN_UNI_T}

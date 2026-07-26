@@ -31,6 +31,8 @@ class CarInterface(CarInterfaceBase):
       ret.safetyConfigs[0].safetyParam = int(ChanganSafetyFlags.CHANGAN_Z6_FLAG)
     elif candidate == CAR.CHANGAN_Z6_IDD:
       ret.safetyConfigs[0].safetyParam = int(ChanganSafetyFlags.CHANGAN_Z6_IDD_FLAG)
+    elif candidate == CAR.CHANGAN_UNI_T:
+      ret.safetyConfigs[0].safetyParam = int(ChanganSafetyFlags.CHANGAN_UNI_T_FLAG)
 
     ret.steerControlType = SteerControlType.angle
 
