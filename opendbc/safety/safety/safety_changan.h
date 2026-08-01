@@ -51,7 +51,7 @@
 #define MSG_GW_24F   0x24FU   // EPS fault status
 #define MSG_GW_28B   0x28BU   // BCM doors + turn signals
 #define MSG_GW_28C   0x28CU   // MFS steering wheel buttons
-#define MSG_GW_320   0x320U   // TCU gear         (UNIT 2022)
+#define MSG_GW_39B   0x39BU   // TCU gear         (UNIT 2022)
 #define MSG_GW_338   0x338U   // TCU gear          (default Z6 / IDD)
 
 // bus 2 (MPC/cam CAN)
@@ -99,7 +99,7 @@ static RxCheck changan_rx_checks[] = {
            {MSG_GW_1A6,  0, 8,  .ignore_checksum = true, .ignore_counter = true, .frequency = 100U},
            {MSG_GW_1C6,  0, 8,  .ignore_checksum = true, .ignore_counter = true, .frequency = 100U}}},
   {.msg = {{MSG_GW_338,  0, 8,  .ignore_checksum = true, .ignore_counter = true, .frequency = 20U},
-           {MSG_GW_320,  0, 8,  .ignore_checksum = true, .ignore_counter = true, .frequency = 20U},
+           {MSG_GW_39B,  0, 8,  .ignore_checksum = true, .ignore_counter = true, .frequency = 20U},
            {0}}},
   // These messages also appear on bus 0 (from camera/EPS)
   {.msg = {{MSG_GW_1BA,  0, 32, .ignore_checksum = true, .ignore_counter = true, .frequency = 100U}, {0}, {0}}},

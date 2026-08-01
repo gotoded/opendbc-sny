@@ -10,7 +10,7 @@
 | 消息数据长度 | ✅ 完全一致 |
 | 总线拓扑 (bus0=pt, bus2=cam) | ✅ 一致 |
 | GW_50/SRS (0x50) | ⚠️ UNIT 仅 4 字节 (Z6 为 8 字节) |
-| **档位消息 (0x338)** | ❌ UNIT 不存在，改用 0x320 (GW_320) |
+| **档位消息 (0x338)** | ❌ UNIT 不存在，改用 0x39B (GW_39B) |
 | 转向/ACC CRC 与 Rolling Counter | ✅ 遵循相同模式 (CRC-8/SAE-J1850) |
 
 ## 文件清单
@@ -27,7 +27,7 @@
 | `opendbc/car/changan/values.py` | 新增 `CHANGAN_UNI_T` 车型、`ChanganUnitPlatformConfig`、`CHANGAN_UNI_T_FLAG` |
 | `opendbc/car/changan/fingerprints.py` | 添加 `CHANGAN_UNI_T` 空指纹占位 |
 | `opendbc/car/changan/interface.py` | 注册 UNIT 安全模型参数 |
-| `opendbc/car/changan/carstate.py` | 档位解析使用 `GW_320` 替代 `GW_338` |
+| `opendbc/car/changan/carstate.py` | 档位解析使用 `GW_39B` 替代 `GW_338` |
 | `opendbc/safety/safety/safety_changan.h` | 添加 `CHANGAN_UNI_T_FLAG` 定义 |
 
 ### 无需修改（复用 Z6 代码）
@@ -40,7 +40,7 @@
 
 ## 当前假设 & 待验证项
 
-1. **🔴 档位消息 (GW_320)：** 当前假定 0x320 承载 `TCU_GearForDisplay` 信号。**需实车验证**信号位置、偏移量和档位值映射。若失败，可通过 panda sniff 找到正确 ID。
+1. **✅ 档位消息 (GW_39B)：** 已通过 dangwei.csv 实车日志验证，0x39B 是档位消息，编码 = byte5 bit5<<1|bit0（P=0, R=1, N=2, D=3）。0x320 数据恒为 0，确认不是档位。
 
 2. **🟡 GW_50 (0x50)：** UNIT 日志显示 4 字节。DBC 定义为 8 字节但不影响解析（CANParser 会填充剩余字节）。
 

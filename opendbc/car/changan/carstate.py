@@ -22,7 +22,8 @@ class CarState(CarStateBase):
     elif self.CP.carFingerprint == CAR.CHANGAN_Z6_IDD:
       self.shifter_values = can_define.dv["GW_338"]["TCU_GearForDisplay"]
     elif self.CP.carFingerprint == CAR.CHANGAN_UNI_T:
-      self.shifter_values = can_define.dv["GW_320"]["TCU_GearForDisplay"]
+      self.shifter_values = None  # UNI-T gear is decoded from GW_39B bits in update()
+      self.gear_names = {0: "P", 1: "R", 2: "N", 3: "D"}
     self.eps_torque_scale = EPS_SCALE[CP.carFingerprint] / 100.0
     self.cluster_speed_hyst_gap = CV.KPH_TO_MS / 2.0
     self.cluster_min_speed = CV.KPH_TO_MS / 2.0
@@ -95,7 +96,7 @@ class CarState(CarStateBase):
       ret.leftBlindspot = False
       ret.rightBlindspot = False
     elif self.CP.carFingerprint == CAR.CHANGAN_UNI_T:
-      can_gear = int(cp.vl["GW_320"]["TCU_GearForDisplay"])
+      gear_raw = (int(cp.vl["GW_39B"]["GearBit1"]) << 1) | int(cp.vl["GW_39B"]["GearBit0"])
       ret.brakePressed = cp.vl["GW_196"]["EMS_BrakePedalStatus"] != 0
       ret.gasPressed = cp.vl["GW_196"]["EMS_RealAccPedal"] != 0
       self.steeringPressedMin = 1
@@ -111,7 +112,10 @@ class CarState(CarStateBase):
       ret.leftBlindspot = False
       ret.rightBlindspot = False
 
-    ret.gearShifter = self.parse_gear_shifter(self.shifter_values.get(can_gear, None))
+    if self.CP.carFingerprint == CAR.CHANGAN_UNI_T:
+      ret.gearShifter = self.parse_gear_shifter(self.gear_names.get(gear_raw, None))
+    else:
+      ret.gearShifter = self.parse_gear_shifter(self.shifter_values.get(can_gear, None))
 
     ret.leftBlinker, ret.rightBlinker = self.update_blinker_from_stalk(
       200, cp.vl["GW_28B"]["BCM_TurnIndicatorLeft"] == 1, cp.vl["GW_28B"]["BCM_TurnIndicatorRight"] == 1
@@ -204,7 +208,7 @@ class CarState(CarStateBase):
       ("GW_31A", 0),
     ]
     if CP.carFingerprint == CAR.CHANGAN_UNI_T:
-      pt_messages.append(("GW_320", 0))
+      pt_messages.append(("GW_39B", 0))
     else:
       pt_messages.append(("GW_338", 0))
     cam_messages = [

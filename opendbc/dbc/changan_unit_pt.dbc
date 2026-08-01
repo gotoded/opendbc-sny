@@ -166,10 +166,9 @@ BO_ 794 GW_31A: 64 XXX
  SG_ ACC_RollingCounter_367 : 243|4@0+ (1,0) [0|15] "" XXX
  SG_ ACC_CRCCheck_367 : 255|8@0+ (1,0) [0|255] "" XXX
 
-BO_ 800 GW_320: 8 XXX
- SG_ TCU_GearForDisplay : 39|4@0+ (1,-7) [0|15] "" XXX
- SG_ COUNTER : 51|4@0+ (1,0) [0|15] "" XXX
- SG_ CHECKSUM : 63|8@0+ (1,0) [0|255] "" XXX
+BO_ 923 GW_39B: 8 XXX
+ SG_ GearBit0 : 40|1@0+ (1,0) [0|1] "" XXX
+ SG_ GearBit1 : 45|1@0+ (1,0) [0|1] "" XXX
 
 CM_ BO_ 378 "UNIT speed";
 CM_ SG_ 384 SAS_SteeringAngle "1";
@@ -179,5 +178,6 @@ CM_ SG_ 651 BCM_TurnIndicatorRight "2 right";
 CM_ SG_ 651 BCM_TurnIndicatorLeft "1 left";
 CM_ SG_ 651 BCM_DriverDoorStatus "0 open";
 CM_ BO_ 652 "GW_28C";
-CM_ BO_ 800 "gear info (tentative: 0x320)";
-VAL_ 800 TCU_GearForDisplay 2 "N" 1 "R" 3 "D" 0 "P";
+CM_ BO_ 923 "gear info (verified: 0x39B, bit5<<1|bit0: P=0 R=1 N=2 D=3)";
+VAL_ 923 GearBit0 0 "0" 1 "1";
+VAL_ 923 GearBit1 0 "0" 1 "1";
