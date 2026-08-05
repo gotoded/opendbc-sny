@@ -28,7 +28,12 @@ class CarController(CarControllerBase):
 
     self.packer = CANPacker(dbc_names[Bus.pt])
     self.last_apply_accel = 0
-    self.last_acctrq = -5000
+    if self.CP.carFingerprint == CAR.CHANGAN_UNI_T:
+      # UNI-T 0x244 AccTrqReq is an unsigned positive torque request (see log:
+      # 0x0B0C=2828 @ +0.75 m/s2); exact mapping needs on-car calibration.
+      self.last_acctrq = 0
+    else:
+      self.last_acctrq = -5000
     self.stop_lead_distance = 0
     self.last_speed = 0
 
@@ -45,7 +50,8 @@ class CarController(CarControllerBase):
     self.filtered_steering_angle = 0.0
     self.steering_smoothing_factor = 0.3
 
-  def update(self, CC, CS, now_nanos):
+  def update(self, CC, CC_SP, CS, now_nanos):
+    is_unit = self.CP.carFingerprint == CAR.CHANGAN_UNI_T
     actuators = CC.actuators
     hud_control = CC.hudControl
 
@@ -71,17 +77,17 @@ class CarController(CarControllerBase):
         apply_angle, self.last_angle, CS.out.vEgoRaw, CS.out.steeringAngleDeg + CS.out.steeringAngleOffsetDeg, CC.latActive, self.params.ANGLE_LIMITS
       )
 
-      can_sends.append(changancan.create_1BA_command(self.packer, CS.sigs1ba, apply_angle, 1, self.counter_1ba))
+      can_sends.append(changancan.create_1BA_command(self.packer, CS.sigs1ba, apply_angle, 1, self.counter_1ba, is_unit))
     else:
       apply_angle = CS.out.steeringAngleDeg
-      can_sends.append(changancan.create_1BA_command(self.packer, CS.sigs1ba, apply_angle, 0, self.counter_1ba))
+      can_sends.append(changancan.create_1BA_command(self.packer, CS.sigs1ba, apply_angle, 0, self.counter_1ba, is_unit))
 
     self.last_angle = apply_angle
 
     can_sends.append(changancan.create_17E_command(self.packer, CS.sigs17e, CC.longActive, self.counter_17e))
 
     if self.frame % 2 == 0:
-      acctrq = -5000
+      acctrq = 0 if is_unit else -5000
       accel = np.clip(actuators.accel, self.params.ACCEL_MIN, self.params.ACCEL_MAX)
 
       speed_kph = CS.out.vEgo * CV.MS_TO_KPH
@@ -138,7 +144,11 @@ class CarController(CarControllerBase):
         else:
           offset, gain = 400, 50
 
-        base_acctrq = (offset + int(abs(accel) / 0.05) * gain) - 5000
+        if is_unit:
+          # UNI-T: positive torque request (unit+scale TBD on-car)
+          base_acctrq = (offset + int(abs(accel) / 0.05) * gain)
+        else:
+          base_acctrq = (offset + int(abs(accel) / 0.05) * gain) - 5000
 
         self.expected_accel = accel
         self.actual_accel_filtered = 0.9 * self.actual_accel_filtered + 0.1 * CS.out.aEgo
@@ -150,7 +160,10 @@ class CarController(CarControllerBase):
           self.slope_compensation = max(self.slope_compensation, 0)
 
         base_acctrq += self.slope_compensation
-        base_acctrq = min(base_acctrq, -10)
+        if is_unit:
+          base_acctrq = max(base_acctrq, 0)
+        else:
+          base_acctrq = min(base_acctrq, -10)
 
         acctrq = np.clip(base_acctrq, self.last_acctrq - 300, self.last_acctrq + 100)
 
@@ -161,7 +174,7 @@ class CarController(CarControllerBase):
       if self.CP.carFingerprint == CAR.CHANGAN_Z6_IDD:
         can_sends.append(changancan.create_244_command_idd(self.packer, CS.sigs244, accel, self.counter_244, CC.longActive, acctrq, CS.out.vEgoRaw))
       else:
-        can_sends.append(changancan.create_244_command(self.packer, CS.sigs244, accel, self.counter_244, CC.longActive, acctrq, CS.out.vEgoRaw))
+        can_sends.append(changancan.create_244_command(self.packer, CS.sigs244, accel, self.counter_244, CC.longActive, acctrq, CS.out.vEgoRaw, is_unit))
 
       self.last_apply_accel = accel
       self.last_acctrq = acctrq

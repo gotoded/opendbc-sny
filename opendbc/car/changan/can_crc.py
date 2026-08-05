@@ -44,7 +44,13 @@ class CanCrc:
 
   def crc_calculate_crc8(self, data: bytes) -> int:
     """
-    CRC-8/SAE-J1850 (poly=0x1D, init=0xFF, no final XOR).
+    CRC-8 (poly=0x1D, init=0x6C, no final XOR).
+
+    NOTE: init=0x6C was verified against real-world Changan UNI-T 2022 CAN
+    captures (01.csv / 02.csv): for every one of the 460k+ frames of
+    GW_17E / GW_1BA / GW_244 / GW_307 / GW_31A, crc8(byte[0:6]) == byte[7]
+    (and byte[8:14]->byte[15] etc. for multi-frame messages).  The previous
+    init=0xFF did NOT match any captured frame.
 
     Used for:
       GW_17E  : ACC_CRCCheck_17E  covers byte[0:7]
@@ -61,7 +67,7 @@ class CanCrc:
                 ACC_CRCCheck_367  covers byte[24:31]
     """
     table = self._get_crc8_table()
-    crc = 0xFF
+    crc = 0x6C
     for byte in data:
       crc = table[crc ^ byte]
     return crc

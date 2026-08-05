@@ -64,9 +64,3 @@ class CarInterface(CarInterfaceBase):
     ret.enableBsm = False
 
     return ret
-
-  def _update(self, c):
-    ret = self.CS.update(self.cp, self.cp_cam)
-    events = self.create_common_events(ret)
-    ret.events = events.to_msg()
-    return ret

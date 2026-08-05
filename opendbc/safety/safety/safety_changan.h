@@ -99,19 +99,14 @@ static RxCheck changan_rx_checks[] = {
            {MSG_GW_1A6,  0, 8,  .ignore_checksum = true, .ignore_counter = true, .frequency = 100U},
            {MSG_GW_1C6,  0, 8,  .ignore_checksum = true, .ignore_counter = true, .frequency = 100U}}},
   {.msg = {{MSG_GW_338,  0, 8,  .ignore_checksum = true, .ignore_counter = true, .frequency = 20U},
-           {MSG_GW_39B,  0, 8,  .ignore_checksum = true, .ignore_counter = true, .frequency = 20U},
+           {MSG_GW_39B,  0, 8,  .ignore_checksum = true, .ignore_counter = true, .frequency = 10U},
            {0}}},
-  // These messages also appear on bus 0 (from camera/EPS)
+  // These messages are relayed on bus 0 by the gateway (UNI-T 2022 captures
+  // show them only on bus 0; bus 2/cam is silent)
   {.msg = {{MSG_GW_1BA,  0, 32, .ignore_checksum = true, .ignore_counter = true, .frequency = 100U}, {0}, {0}}},
   {.msg = {{MSG_GW_244,  0, 32, .ignore_checksum = true, .ignore_counter = true, .frequency = 50U}, {0}, {0}}},
   {.msg = {{MSG_GW_307,  0, 64, .ignore_checksum = true, .ignore_counter = true, .frequency = 10U}, {0}, {0}}},
   {.msg = {{MSG_GW_31A,  0, 64, .ignore_checksum = true, .ignore_counter = true, .frequency = 10U}, {0}, {0}}},
-  // bus 2 (cam)
-  {.msg = {{MSG_GW_1BA,  2, 32, .ignore_checksum = true, .ignore_counter = true, .frequency = 100U}, {0}, {0}}},
-  {.msg = {{MSG_GW_17E,  2, 8, .ignore_checksum = true, .ignore_counter = true, .frequency = 100U}, {0}, {0}}},
-  {.msg = {{MSG_GW_244,  2, 32, .ignore_checksum = true, .ignore_counter = true, .frequency = 50U}, {0}, {0}}},
-  {.msg = {{MSG_GW_307,  2, 64, .ignore_checksum = true, .ignore_counter = true, .frequency = 10U}, {0}, {0}}},
-  {.msg = {{MSG_GW_31A,  2, 64, .ignore_checksum = true, .ignore_counter = true, .frequency = 10U}, {0}, {0}}},
 };
 
 // ── Safety hook: init ─────────────────────────────────────────────────────────
@@ -132,11 +127,20 @@ static bool changan_tx_hook(const CANPacket_t *to_send) {
   bool tx = true;
 
   // ── GW_1BA: lateral angle command ────────────────────────────────────────
-  // EPS_AngleCmd: bits [1..14], factor 0.1 deg/LSB, signed
   if ((addr == MSG_GW_1BA_TX) && (bus == 0)) {
-    const int raw_angle = (int)(((GET_BYTE(to_send, 0) >> 1) | (GET_BYTE(to_send, 1) << 7)) & 0x3FFFU);
-    // sign-extend 14-bit
-    const int angle_cmd = (raw_angle & 0x2000) ? (raw_angle - 0x4000) : raw_angle;
+    int angle_cmd;
+    if (changan_safety_flags & CHANGAN_UNI_T_FLAG) {
+      // UNI-T 2022 encoding (verified against 01/02.csv):
+      //   EPS_AngleCmd lives in byte2-4, Motorola 24-bit big-endian:
+      //     raw24 = (b2<<16)|(b3<<8)|b4 = 0x5DC200 + angle_raw*16
+      //     angle_raw = angle_deg * 10  (0.1 deg/LSB)
+      const int raw24 = ((int)GET_BYTE(to_send, 2) << 16) | ((int)GET_BYTE(to_send, 3) << 8) | (int)GET_BYTE(to_send, 4);
+      angle_cmd = (raw24 - 0x5DC200) / 16;
+    } else {
+      // Z6 / Z6 iDD: EPS_AngleCmd bits [1..14], factor 0.1 deg/LSB, signed
+      const int raw_angle = (int)(((GET_BYTE(to_send, 0) >> 1) | (GET_BYTE(to_send, 1) << 7)) & 0x3FFFU);
+      angle_cmd = (raw_angle & 0x2000) ? (raw_angle - 0x4000) : raw_angle;
+    }
     const uint8_t lat_active = GET_BYTE(to_send, 0) & 0x1U;
 
     if (lat_active != 0U) {
@@ -156,13 +160,22 @@ static bool changan_tx_hook(const CANPacket_t *to_send) {
   }
 
   // ── GW_244: longitudinal acceleration command ─────────────────────────────
-  // ACC_ACCTargetAcceleration: bits [4..15], factor 0.05 m/s², signed 12-bit
   if ((addr == MSG_GW_244_TX) && (bus == 0)) {
-    const int raw_accel_u = (int)(((GET_BYTE(to_send, 0) >> 4) | (GET_BYTE(to_send, 1) << 4)) & 0xFFFU);
-    const int accel_cmd = (raw_accel_u & 0x800) ? (raw_accel_u - 0x1000) : raw_accel_u;
-    // raw unit = 0.05 m/s² per LSB; CHANGAN_ACCEL_MAX/MIN already in these units
-    if ((accel_cmd > CHANGAN_ACCEL_MAX) || (accel_cmd < CHANGAN_ACCEL_MIN)) {
-      tx = false;
+    if (changan_safety_flags & CHANGAN_UNI_T_FLAG) {
+      // UNI-T 2022: ACC_ACCTargetAcceleration = byte0 unsigned 8-bit,
+      //   physical = raw*0.05 - 5.0  (raw 100 = 0 m/s²)
+      //   raw = (accel + 5.0)/0.05  →  ACCEL_MAX 2.0 → 140, ACCEL_MIN -3.5 → 30
+      const int accel_raw = (int)GET_BYTE(to_send, 0);
+      if ((accel_raw > 140) || (accel_raw < 30)) {
+        tx = false;
+      }
+    } else {
+      // Z6 / Z6 iDD: ACC_ACCTargetAcceleration bits [4..15], factor 0.05 m/s², signed 12-bit
+      const int raw_accel_u = (int)(((GET_BYTE(to_send, 0) >> 4) | (GET_BYTE(to_send, 1) << 4)) & 0xFFFU);
+      const int accel_cmd = (raw_accel_u & 0x800) ? (raw_accel_u - 0x1000) : raw_accel_u;
+      if ((accel_cmd > CHANGAN_ACCEL_MAX) || (accel_cmd < CHANGAN_ACCEL_MIN)) {
+        tx = false;
+      }
     }
   }
 

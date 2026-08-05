@@ -201,3 +201,89 @@ opendbc 安全固件是为与 [openpilot](https://github.com/commaai/openpilot) 
 ## 加入我们 — [comma.ai/jobs](https://comma.ai/jobs)
 
 comma 正在招聘工程师来开发 opendbc 和 [openpilot](https://github.com/commaai/openpilot)。我们喜欢招聘贡献者。
+
+---
+
+## Changan UNI-T 2022 移植日志（基于 CAN 日志验证）
+
+本仓库包含长安 UNI-T 2022 的 opendbc 移植。以下修改基于 3 个实车 CAN 录制日志（`opendbc/01.csv` 静止 P 档、`opendbc/02.csv` 行驶、`opendbc/dangwei.csv` 切档）逐帧验证得出。
+
+### 2026-08 修改记录
+
+#### 1. CRC 算法修正（`opendbc/car/changan/can_crc.py`）
+- **问题**：CRC-8 初始值使用 0xFF，与实车不符。
+- **验证**：对 01.csv/02.csv 中全部 46 万+ 帧（GW_17E/GW_1BA/GW_244/GW_307/GW_31A 及所有子消息）逐帧计算，`crc8(byte[0:6])` 必须等于 `byte[7]`。
+- **结论**：算法为 poly=0x1D、**init=0x6C**、无反转。init=0xFF 不匹配任何一帧。
+- **影响**：不修正则 openpilot 发送的所有命令 CRC 错误，EPS/ACC 将拒绝执行。
+
+#### 2. Rolling Counter 位偏移修正（`opendbc/dbc/changan_unit_pt.dbc`）
+- **问题**：所有 counter 定义在 `51|4@0+`（byte6 bit3-6），实际在**各子消息 byte 的低 4 位**。
+- **验证**：0x1BA/0x180/0x17E/0x244/0x307/0x31A/0x50 等的 byte6/14/22/30 低 4 位每帧 +1 循环（0-F）。
+- **修正**：`51→48`、`115→112`、`179→176`、`243→240`；GW_50 的 `27→24`。
+- **影响**：counter 位置错会导致 carstate 读取的 counter 错乱、中继消息计数错误。
+
+#### 3. 转向角字节序修正（GW_180，`changan_unit_pt.dbc`）
+- **问题**：`SAS_SteeringAngle : 0|16@0-`（Intel 小端），实际为 **Motorola 大端**（byte0=高字节）。
+- **验证**：静止 ±2.5 deg、掉头 512~819 deg，与 byte0<<8|byte1×0.1 完全对应。
+- **修正**：`0|16@0-` → `0|16@1-`。角速度 byte2 不变。
+
+#### 4. 车速字节序修正（GW_187/GW_17A，`changan_unit_pt.dbc`）
+- **问题**：`ESP_VehicleSpeed : 39|16@0+`（小端），实际 byte4-5 为**大端**。
+- **验证**：静止 0x0000→0 km/h；行驶 0x0042=66×0.05=3.3 km/h、0x05FF=76.75 km/h。
+- **修正**：`39|16@0+` → `39|16@1+`。
+
+#### 5. 转向角命令编码（GW_1BA，`changan_unit_pt.dbc` + `changancan.py`）
+- **问题**：原定义 `EPS_AngleCmd : 31|16@0- (0.1,0)`，与实际编码不符。
+- **验证**：多组 (0x180 实际角度, 0x1BA 命令) 配对，命令 = byte2-4 **Motorola 24 位大端**，`raw24 = 0x5DC200 + angle_raw×16`（angle_raw = deg×10）。
+- **修正**：DBC 改为 `EPS_AngleCmd : 23|24@1+ (1,0)`；`create_1BA_command` 传 `0x5DC200 + int(round(angle*10))<<4`；byte0-1 固定头（0xB5 0x29）原样保留（新增 `UNIT_1BA_Hdr0/Hdr1` 信号）。
+- **影响**：不修正则 EPS 不执行或误执行转向命令。
+
+#### 6. safety 层 TX 解析同步（`opendbc/safety/safety/safety_changan.h`）
+- 0x1BA 角度解析改为 24 位大端 + 0x5DC200 偏置；角度限制（±9800 raw = ±980 deg、1.4 deg/帧）不变。
+- 0x244 加速度解析改为 byte0 无符号 8 位（raw=100 即 0 m/s²），限幅 30~140 raw。
+- **GW_39B 频率 20U→10U**（实车 10Hz，20U 会触发 RX 超时导致安全模型退出）。
+
+#### 7. 总线拓扑修正（`carstate.py` + `safety_changan.h`）
+- **验证**：三个日志中 bus2（cam）仅在开头 0.1 秒有消息，之后完全静默；0x1BA/0x244/0x307/0x31A 全程在 **bus0** 100Hz 广播（网关中继）。
+- **修正**：carstate 全部信号改从 bus0 解析；移除 safety 中 bus2 的 RX 检查（否则 bus2 无消息会触发超时）。
+- **注意**：若实车 IACC 激活后 bus2 出现相机消息，需重新评估 fwd_hook 与 RX 检查。
+
+#### 8. 发送/中继命令重构（`changancan.py`）
+- `create_307_command` / `create_31A_command` / `create_17E_command` 原来用硬编码信号名列表（大多在 DBC 中不存在，导致 packer 报错并**把原始帧其余字节清零**），改为 `msg.copy()` 从解析结果重建、只改 counter/CRC。
+- **已知限制**：packer 逐帧零初始化，0x307/0x31A 中 DBC 未定义的字节（byte3-5、8-13、16-21、24-29 及 32-63）仍为 0；需完整反推这两个 64 字节消息的全部位布局才能原样中继，属后续工作。
+- 为兼容 Z6：`create_1BA_command` / `create_244_command` 按 fingerprint 分支（UNIT 用新编码，Z6/Z6 iDD 保持原编码与 ACCMode/CDDActive 行为）。
+
+#### 9. 接口签名修复（`interface.py` / `carcontroller.py`）
+- 删除 changan 私有的 `_update(self, c)` 覆盖（与基类签名不符，会 TypeError），改用基类 `CS.update(self.can_parsers)`。
+- `carcontroller.update` 增加缺失的 `CC_SP` 参数。
+- `carstate.__init__` 补 `cruiseEnablePrev` 初始化。
+
+#### 10. 指纹补充（`fingerprints.py`）
+- 日志总线出现但指纹缺失的 0x2CB(715) 和 0x514(1300) 会淘汰 UNIT 候选，已补入 FINGERPRINTS。
+
+#### 11. 档位消息（GW_39B）
+- 已在前次提交验证（byte5 bit5<<1|bit0，P=0/R=1/N=2/D=3），本次复核通过，无需修改。
+
+### 仍需手动确认 / 实车验证项
+
+| 项 | 现状 | 建议 |
+|----|------|------|
+| GW_17E 扭矩传感器 | 按 byte0 有符号 8 位、0x7F=0 Nm、(0.1,-12.7) 解码 | 实车打方向对比仪表/手感确认量程 |
+| GW_170 实际扭矩 | 位置未确认（byte2-4 变化） | 需反向或实车验证 |
+| GW_196 刹车/油门 | byte0 为踏板位置（0x00=松开）；EMS_BrakePedalStatus 位未确认 | 实车踩刹车/油门录制确认 |
+| 0x244 ACC_ACCMode | 暂按 byte1（日志值 01/02） | 需 ACC 激活/退出录制确认语义 |
+| 0x244 AccTrqReq | 已确认 b12-13 小端正值（日志 2828@+0.75m/s²）；carcontroller 已改为正值发送 | **映射需实车标定**（offset/gain） |
+| 0x307 ACC_SetSpeed / 0x31A 各信号位 | 位置未确认；中继已改为保留原值 | 实车开启 ACC 录制确认 |
+| IACCHWAEnable（0x31A byte8 bit4） | 日志恒 1（available 恒 True） | 实车确认含义 |
+| 0x244 byte0 加速度编码 | 0x64=100 即 0 m/s²、0.05/LSB（来自 2 个样本点） | 需急加速/急刹录制验证 |
+| 固件指纹 FW_VERSIONS | CHANGAN_UNI_T 为空 | panda 采集 `get_fw.py` 填入 |
+| 总线拓扑 | 日志 bus2 无持续消息 | 实车 IACC 激活后确认 bus2 是否有相机消息 |
+| 转向比/轮胎刚度 | 估算值（steerRatio=15 等） | 实车调优 |
+| 速度校正公式 | `carspd<=5 ? carspd : carspd/0.98+2`（Z6 经验） | 实车对比 GPS 校正 |
+
+### 需要重新录制的场景
+1. **ACC 激活/退出**（含加速、减速、跟停、起步）——验证 0x244 加速度/ACCMode/AccTrqReq 语义与映射
+2. **方向盘打满两个方向**——验证 0x1BA 角度命令编码与 0x180 量程
+3. **急刹车/急加速**——验证 0x196 踏板信号与 0x244 编码
+4. **按 IACC/RES+/SET-/CANCEL 按钮**——验证 0x28C 全部按钮位
+5. **IACC 激活状态下的 bus2 录制**——确认相机消息是否出现在 bus2

@@ -40,19 +40,32 @@ def create_244_command_a05(packer, accel, counter, longActive, accTrq):
   return packer.make_can_msg("GW_244", 0, values)
 
 
-def create_244_command(packer, msg: dict, accel, counter, longActive, accTrq, vEgoRaw):
+def create_244_command(packer, msg: dict, accel, counter, longActive, accTrq, vEgoRaw, is_unit: bool):
   values = msg.copy()
-  values.update(
-    {
-      "ACC_ACCTargetAcceleration": accel,
-      "ACC_CDDActive": 1 if longActive and accel < 0 else 0,
-      "ACC_RollingCounter_24E": counter,
-      "ACC_RollingCounter_25E": counter,
-      "ACC_ACCMode": 3 if longActive else 2,
-      "ACC_AccTrqReq": accTrq,
-      "ACC_AccTrqReqActive": 1 if longActive and accel >= 0 else 0,
-    }
-  )
+  if is_unit:
+    # UNI-T: ACC_ACCMode bit position not confirmed - keep camera value.
+    values.update(
+      {
+        "ACC_ACCTargetAcceleration": accel,
+        "ACC_RollingCounter_24E": counter,
+        "ACC_RollingCounter_25E": counter,
+        "ACC_AccTrqReq": accTrq,
+        "ACC_AccTrqReqActive": 1 if longActive and accel >= 0 else 0,
+      }
+    )
+  else:
+    # Z6 / Z6 iDD original behavior
+    values.update(
+      {
+        "ACC_ACCTargetAcceleration": accel,
+        "ACC_CDDActive": 1 if longActive and accel < 0 else 0,
+        "ACC_RollingCounter_24E": counter,
+        "ACC_RollingCounter_25E": counter,
+        "ACC_ACCMode": 3 if longActive else 2,
+        "ACC_AccTrqReq": accTrq,
+        "ACC_AccTrqReqActive": 1 if longActive and accel >= 0 else 0,
+      }
+    )
   dat = packer.make_can_msg("GW_244", 0, values)[1]
   values["ACC_CRCCheck_24E"] = can_crc.crc_calculate_crc8(dat[:7])
   values["ACC_CRCCheck_25E"] = can_crc.crc_calculate_crc8(dat[8:15])
@@ -88,25 +101,51 @@ def create_244_command_idd(packer, msg: dict, accel, counter, longActive, accTrq
   return packer.make_can_msg("GW_244", 0, values)
 
 
-def create_1BA_command(packer, msg: dict, angle, latCtrlActive, counter):
-  values = {
-    s: msg.get(s, 0)
-    for s in [
-      "ACC_CRCCheck_1BA",
-      "ACC_RollingCounter_1BA",
-      "EPS_LatCtrlActive",
-      "EPS_AngleCmd",
-      "ACC_MotorTorqueMinLimitRequest",
-      "ACC_MotorTorqueMaxLimitRequest",
-    ]
-  }
-  values.update(
-    {
-      "EPS_AngleCmd": angle,
-      "EPS_LatCtrlActive": latCtrlActive,
-      "ACC_RollingCounter_1BA": counter,
+def create_1BA_command(packer, msg: dict, angle, latCtrlActive, counter, is_unit: bool):
+  if is_unit:
+    # UNIT 2022 (verified against 01/02.csv captures):
+    #   byte0-1: fixed header 0xB5 0x29 (relayed unchanged from camera)
+    #   byte2-4: EPS_AngleCmd, Motorola 24-bit big-endian
+    #            value = 0x5DC200 + int(angle_deg*10) << 4
+    #   byte6:   rolling counter in low nibble
+    #   byte7:   CRC-8 (init=0x6C) over bytes 0..6
+    # latCtrlActive is not mappable to a known bit yet -> keep camera value.
+    values = {
+      s: msg.get(s, 0)
+      for s in [
+        "UNIT_1BA_Hdr0",
+        "UNIT_1BA_Hdr1",
+        "ACC_CRCCheck_1BA",
+        "ACC_RollingCounter_1BA",
+        "EPS_AngleCmd",
+      ]
     }
-  )
+    values.update(
+      {
+        "EPS_AngleCmd": 0x5DC200 + (int(round(angle * 10.0)) << 4),
+        "ACC_RollingCounter_1BA": counter,
+      }
+    )
+  else:
+    # Z6 / Z6 iDD original encoding (changan_pt.dbc): 16-bit little-endian
+    values = {
+      s: msg.get(s, 0)
+      for s in [
+        "ACC_CRCCheck_1BA",
+        "ACC_RollingCounter_1BA",
+        "EPS_LatCtrlActive",
+        "EPS_AngleCmd",
+        "ACC_MotorTorqueMinLimitRequest",
+        "ACC_MotorTorqueMaxLimitRequest",
+      ]
+    }
+    values.update(
+      {
+        "EPS_AngleCmd": angle,
+        "EPS_LatCtrlActive": latCtrlActive,
+        "ACC_RollingCounter_1BA": counter,
+      }
+    )
   dat = packer.make_can_msg("GW_1BA", 0, values)[1]
 
   values["ACC_CRCCheck_1BA"] = can_crc.crc_calculate_crc8(dat[:7])
@@ -114,22 +153,9 @@ def create_1BA_command(packer, msg: dict, angle, latCtrlActive, counter):
 
 
 def create_17E_command(packer, msg: dict, longActive, counter):
-  values = {
-    s: msg.get(s, 0)
-    for s in [
-      "EPS_CRCCheck_17E",
-      "EPS_RollingCounter_17E",
-      "EPS_LatCtrlAvailabilityStatus",
-      "EPS_LatCtrlActive",
-      "EPS_Handwheel_Relang_Valid",
-      "EPS_MeasuredTorsionBarTorqValid",
-      "EPS_Handwheel_Relang",
-      "EPS_Pinionang",
-      "EPS_Pinionang_Valid",
-      "EPS_ADS_Abortfeedback",
-      "EPS_MeasuredTorsionBarTorque",
-    ]
-  }
+  # Relay EPS sensor frame (bus 2); bump counter, recompute CRC.
+  # msg comes from CS.sigs17e (DBC-defined signals only).
+  values = msg.copy()
   values.update(
     {
       "EPS_MeasuredTorsionBarTorque": msg.get("EPS_MeasuredTorsionBarTorque", 0) + 1 if longActive else msg.get("EPS_MeasuredTorsionBarTorque", 0),
@@ -143,51 +169,11 @@ def create_17E_command(packer, msg: dict, longActive, counter):
 
 
 def create_307_command(packer, msg: dict, counter, cruiseSpeed):
-  values = {
-    s: msg.get(s, 0)
-    for s in [
-      "ACC_RLaneDistanceFus",
-      "ACC_LLaneDistanceFus",
-      "ACC_RRLaneDis",
-      "ACC_LLLaneDis",
-      "ACC_Target7ZoneID",
-      "ACC_Target7HeadingAngle",
-      "ACC_Target7LatRange",
-      "ACC_Target7LngRange",
-      "ACC_Target7Direction",
-      "ACC_Target7Type",
-      "ACC_Target7ID",
-      "ACC_Target7Detection",
-      "ACC_Target6ZoneID",
-      "ACC_Target6HeadingAngle",
-      "ACC_Target6LatRange",
-      "ACC_Target6LngRange",
-      "ACC_Target6Direction",
-      "ACC_Target6Type",
-      "ACC_Target6ID",
-      "ACC_Target6Detection",
-      "ACC_CRCCheck_35F",
-      "ACC_RollingCounter_35F",
-      "ACC_CSLAEnableStatus",
-      "ACC_IACCProhibitionTime",
-      "ACC_CSLSetReq",
-      "ACC_VehicleStartRemindSts",
-      "ACC_CRCCheck_344",
-      "ACC_RollingCounter_344",
-      "ACC_CRCCheck_322",
-      "ACC_RollingCounter_322",
-      "ACC_ACCTargetRelSpd",
-      "ACC_FRadarCalibrationStatus",
-      "ACC_CRCCheck_35E",
-      "ACC_RollingCounter_35E",
-      "ACC_AEBEnable",
-      "ACC_FCWSettingStatus",
-      "ACC_TimeGapSet",
-      "ACC_DistanceLevel",
-      "ACC_ObjValid",
-      "ACC_SetSpeed",
-    ]
-  }
+  # Relay the camera's original GW_307 display frame; only bump the 4
+  # rolling counters and the set speed.  msg comes from CS.sigs307
+  # (CANParser dict of the DBC-defined signals), so a plain copy preserves
+  # every byte of the original frame.
+  values = msg.copy()
   values.update(
     {
       "ACC_SetSpeed": cruiseSpeed,
@@ -206,62 +192,11 @@ def create_307_command(packer, msg: dict, counter, cruiseSpeed):
 
 
 def create_31A_command(packer, msg: dict, counter, longActive, steeringPressed):
-  values = {
-    s: msg.get(s, 0)
-    for s in [
-      "ACC_CRCCheck_367",
-      "ACC_RollingCounter_367",
-      "ACC_LatPathHeadingAngle",
-      "ACC_LatPathDY",
-      "ACC_ELKEnableStatus",
-      "ACC_ELKInterventionMode",
-      "ACC_ELKMode",
-      "ACC_CRCCheck_30D",
-      "ACC_RollingCounter_30D",
-      "ACC_HighBeamControl",
-      "ACC_RRLaneDetection",
-      "ACC_LLLaneDetection",
-      "ACC_TargetBasedLateralControl",
-      "ACC_DriverHandsOffStatus",
-      "ACC_IACCHWATextInfoForDriver",
-      "ACC_IACCHWAMode",
-      "ACC_CRCCheck_30A",
-      "ACC_RollingCounter_30A",
-      "ACC_LaneChangeStatus",
-      "ACC_RoadCurvatureFar",
-      "ACC_RoadCurvatureNear",
-      "ACC_RoadCurvature",
-      "ACC_LLaneMarkerType",
-      "ACC_HostLaneLeftStatus",
-      "ACC_HostLaneRightStatus",
-      "ACC_IACCHWAEnable",
-      "ACC_RLaneMarkerType",
-      "ACC_CRCCheck_36D",
-      "ACC_RollingCounter_36D",
-      "ACC_FRadarFailureStatus",
-      "ACC_Voiceinfo",
-      "ACC_AEBTargetmode",
-      "ACC_AEBTextInfo",
-      "ACC_AEBStatus",
-      "ACC_ELKAlert",
-      "ACC_AEBTargetLatRange",
-      "ACC_AEBTargetRelSpeed",
-      "ACC_AEBTargetLngRange",
-    ]
-  }
-  iacc_mode = 1
-  if longActive:
-    if steeringPressed:
-      iacc_mode = 4
-    else:
-      iacc_mode = 3
+  # Relay the camera's original GW_31A frame; only bump the 4 rolling
+  # counters.  msg comes from CS.sigs31a.
+  values = msg.copy()
   values.update(
     {
-      "ACC_IACCHWAMode": iacc_mode,
-      "ACC_TargetBasedLateralControl": 2 if longActive and not steeringPressed else 0,
-      "ACC_AEBTextInfo": 0,
-      "ACC_IACCHWATextInfoForDriver": 0,
-      "ACC_ELKAlert": 0,
       "ACC_RollingCounter_36D": counter,
       "ACC_RollingCounter_30A": counter,
       "ACC_RollingCounter_30D": counter,

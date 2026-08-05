@@ -36,6 +36,7 @@ class CarState(CarStateBase):
     self.low_speed_lockout = False
     self.acc_type = 1
     self.cruiseEnable = False
+    self.cruiseEnablePrev = False
     self.cruiseSpeed = 0
     self.buttonPlus = 0
     self.buttonReduce = 0
@@ -157,33 +158,41 @@ class CarState(CarStateBase):
     self.buttonPlus = cp.vl["GW_28C"]["GW_MFS_RESPlus_switch_signal"]
     self.buttonReduce = cp.vl["GW_28C"]["GW_MFS_SETReduce_switch_signal"]
 
-    ret.accFaulted = cp_cam.vl["GW_244"]["ACC_ACCMode"] == 7 or cp_cam.vl["GW_31A"]["ACC_IACCHWAMode"] == 7
-    ret.cruiseState.available = cp_cam.vl["GW_31A"]["ACC_IACCHWAEnable"] == 1
+    # NOTE: the UNI-T 2022 captures (01/02/dangwei.csv) show the ADAS
+    # command messages (0x1BA/0x244/0x307/0x31A) only on bus 0 (100Hz, relayed
+    # by the gateway) - bus 2 (cam) is silent except the first 0.1s of the
+    # capture.  Z6 / Z6 iDD keep reading them from bus 2 (cam).
+    if self.CP.carFingerprint == CAR.CHANGAN_UNI_T:
+      adas_src = cp
+    else:
+      adas_src = cp_cam
+    ret.accFaulted = adas_src.vl["GW_244"]["ACC_ACCMode"] == 7 or adas_src.vl["GW_31A"]["ACC_IACCHWAMode"] == 7
+    ret.cruiseState.available = adas_src.vl["GW_31A"]["ACC_IACCHWAEnable"] == 1
     ret.cruiseState.speed = self.cruiseSpeed * CV.KPH_TO_MS
     cluster_set_speed = self.cruiseSpeed
 
     if ret.cruiseState.speed != 0:
       ret.cruiseState.speedCluster = cluster_set_speed * CV.KPH_TO_MS
 
-    ret.stockFcw = cp_cam.vl["GW_244"]["ACC_FCWPreWarning"] == 1
+    ret.stockFcw = adas_src.vl["GW_244"]["ACC_FCWPreWarning"] == 1
     ret.cruiseState.standstill = ret.standstill
     ret.cruiseState.enabled = self.cruiseEnable
     ret.genericToggle = False
-    ret.stockAeb = cp_cam.vl["GW_244"]["ACC_AEBCtrlType"] > 0
+    ret.stockAeb = adas_src.vl["GW_244"]["ACC_AEBCtrlType"] > 0
 
-    self.sigs244 = copy.copy(cp_cam.vl["GW_244"])
-    self.sigs1ba = copy.copy(cp_cam.vl["GW_1BA"])
+    self.sigs244 = copy.copy(adas_src.vl["GW_244"])
+    self.sigs1ba = copy.copy(adas_src.vl["GW_1BA"])
     self.sigs17e = copy.copy(cp.vl["GW_17E"])
-    self.sigs307 = copy.copy(cp_cam.vl["GW_307"])
-    self.sigs31a = copy.copy(cp_cam.vl["GW_31A"])
-    self.counter_244 = cp_cam.vl["GW_244"]["ACC_RollingCounter_24E"]
-    self.counter_1ba = cp_cam.vl["GW_1BA"]["ACC_RollingCounter_1BA"]
+    self.sigs307 = copy.copy(adas_src.vl["GW_307"])
+    self.sigs31a = copy.copy(adas_src.vl["GW_31A"])
+    self.counter_244 = adas_src.vl["GW_244"]["ACC_RollingCounter_24E"]
+    self.counter_1ba = adas_src.vl["GW_1BA"]["ACC_RollingCounter_1BA"]
     self.counter_17e = cp.vl["GW_17E"]["EPS_RollingCounter_17E"]
-    self.counter_307 = cp_cam.vl["GW_307"]["ACC_RollingCounter_35E"]
-    self.counter_31a = cp_cam.vl["GW_31A"]["ACC_RollingCounter_36D"]
+    self.counter_307 = adas_src.vl["GW_307"]["ACC_RollingCounter_35E"]
+    self.counter_31a = adas_src.vl["GW_31A"]["ACC_RollingCounter_36D"]
 
     self.prev_distance_button = self.distance_button
-    self.distance_button = cp_cam.vl["GW_307"]["ACC_DistanceLevel"]
+    self.distance_button = adas_src.vl["GW_307"]["ACC_DistanceLevel"]
 
     return ret
 
