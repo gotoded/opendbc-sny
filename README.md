@@ -204,9 +204,9 @@ comma 正在招聘工程师来开发 opendbc 和 [openpilot](https://github.com/
 
 ---
 
-## Changan UNI-T 2022 移植日志（基于 CAN 日志验证）
+## UNI-T 2022 移植日志（基于 CAN 日志验证）
 
-本仓库包含长安 UNI-T 2022 的 opendbc 移植。以下修改基于 3 个实车 CAN 录制日志（`opendbc/01.csv` 静止 P 档、`opendbc/02.csv` 行驶、`opendbc/dangwei.csv` 切档）逐帧验证得出。
+本仓库包含 UNI-T 2022 的 opendbc 移植。以下修改基于 3 个实车 CAN 录制日志（`opendbc/01.csv` 静止 P 档、`opendbc/02.csv` 行驶、`opendbc/dangwei.csv` 切档）逐帧验证得出。
 
 ### 2026-08 修改记录
 
@@ -264,18 +264,25 @@ comma 正在招聘工程师来开发 opendbc 和 [openpilot](https://github.com/
 #### 11. 档位消息（GW_39B）
 - 已在前次提交验证（byte5 bit5<<1|bit0，P=0/R=1/N=2/D=3），本次复核通过，无需修改。
 
+#### 12. 二次复核修正（2026-08，基于 3 日志重新逐帧验证）
+- **GW_196 EMS_BrakePedalStatus**：原 `54|1@0+`（byte6 bit6，落在 counter 高 4 位）错误。实际 **byte0 = 驾驶员刹车踏板位置**（0x00=松开，>0=踩下；205s 踩刹车段 byte0 0x00→0x27 且与车速负相关验证；651s ACC 段恒 0x00）。改为 `0|8@0+`。死信号 `brakePressed : 0|1` 删除。
+- **GW_17E EPS_LatCtrlAvailabilityStatus**：原 `55|2@0+`（byte6 bit7 + byte7 bit0 = CRC bit0）会导致 `steerFaultTemporary` 随机误报。改为 `52|2@0+`（byte6 bit4-5，行驶=1/静止=0，稳定不随机）。
+- **GW_244 ACC_AccTrqReq**：原 `96|16@0+`（小端）错误。实际 **byte12-13 为 Motorola 大端**（651s ACC 段 0x0574=1396 合理，小端 29701 超范围）。改为 `103|16@1+`。
+- **GW_244 byte0 加速度**：651-685s ACC 激活段验证，byte0 在 0x5D-0x6B（93-107）微调，对应 ±0.35 m/s²（`(raw-100)*0.05`），与 byte12-13 扭矩请求同向变化，确认 `0|8@0+ (0.05,-5.0)` 正确。
+- **GW_244 byte6 高 4 位**：动态标志（0x0/0x1/0x2/0x3/0x5），非恒 0；ACC_AccTrqReqActive(44|1=byte5 bit4) 在 ACC 激活时置 1 已确认。byte1(ACCMode)=01/02 与 byte6 高 4 位是两个独立信号，语义待实车。
+
 ### 仍需手动确认 / 实车验证项
 
 | 项 | 现状 | 建议 |
 |----|------|------|
-| GW_17E 扭矩传感器 | 按 byte0 有符号 8 位、0x7F=0 Nm、(0.1,-12.7) 解码 | 实车打方向对比仪表/手感确认量程 |
+| GW_17E 扭矩传感器 | 按 byte0 有符号 8 位、0x7F=0 Nm、(0.1,-12.7) 解码；byte1 bit5-7 为 3 位状态（非扭矩） | 实车打方向对比仪表/手感确认量程 |
 | GW_170 实际扭矩 | 位置未确认（byte2-4 变化） | 需反向或实车验证 |
-| GW_196 刹车/油门 | byte0 为踏板位置（0x00=松开）；EMS_BrakePedalStatus 位未确认 | 实车踩刹车/油门录制确认 |
-| 0x244 ACC_ACCMode | 暂按 byte1（日志值 01/02） | 需 ACC 激活/退出录制确认语义 |
-| 0x244 AccTrqReq | 已确认 b12-13 小端正值（日志 2828@+0.75m/s²）；carcontroller 已改为正值发送 | **映射需实车标定**（offset/gain） |
+| GW_196 油门 | byte2 为实际油门/发动机扭矩（含 ACC，静止 0x00、67km/h 巡航 0x1E）；驾驶员油门位未确认 | 实车踩油门录制确认 gasPressed 位 |
+| 0x244 ACC_ACCMode | byte1（日志值 00/01/02，01=待机、02=激活）；byte6 高 4 位是独立动态标志 | 需 ACC 激活/退出录制确认语义 |
+| 0x244 AccTrqReq | 已确认 byte12-13 **大端**正值（651s 1396-4100）；carcontroller 正值发送 | **映射需实车标定**（offset/gain，当前 400-1100 偏小） |
 | 0x307 ACC_SetSpeed / 0x31A 各信号位 | 位置未确认；中继已改为保留原值 | 实车开启 ACC 录制确认 |
 | IACCHWAEnable（0x31A byte8 bit4） | 日志恒 1（available 恒 True） | 实车确认含义 |
-| 0x244 byte0 加速度编码 | 0x64=100 即 0 m/s²、0.05/LSB（来自 2 个样本点） | 需急加速/急刹录制验证 |
+| 0x244 byte0 加速度编码 | `(raw-100)*0.05` m/s²（651-685s ACC 段 ±0.35 验证；日志无急加减速） | 需急加速/急刹录制验证全量程 |
 | 固件指纹 FW_VERSIONS | CHANGAN_UNI_T 为空 | panda 采集 `get_fw.py` 填入 |
 | 总线拓扑 | 日志 bus2 无持续消息 | 实车 IACC 激活后确认 bus2 是否有相机消息 |
 | 转向比/轮胎刚度 | 估算值（steerRatio=15 等） | 实车调优 |
