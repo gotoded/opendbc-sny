@@ -265,11 +265,19 @@ comma 正在招聘工程师来开发 opendbc 和 [openpilot](https://github.com/
 - 已在前次提交验证（byte5 bit5<<1|bit0，P=0/R=1/N=2/D=3），本次复核通过，无需修改。
 
 #### 12. 二次复核修正（2026-08，基于 3 日志重新逐帧验证）
-- **GW_196 EMS_BrakePedalStatus**：原 `54|1@0+`（byte6 bit6，落在 counter 高 4 位）错误。实际 **byte0 = 驾驶员刹车踏板位置**（0x00=松开，>0=踩下；205s 踩刹车段 byte0 0x00→0x27 且与车速负相关验证；651s ACC 段恒 0x00）。改为 `0|8@0+`。死信号 `brakePressed : 0|1` 删除。
+- ~~**GW_196 EMS_BrakePedalStatus**：原 `54|1@0+`（byte6 bit6）错误，改为 byte0~~ —— **本项有误，见第 13 项：刹车踏板实际在 0x277**。
 - **GW_17E EPS_LatCtrlAvailabilityStatus**：原 `55|2@0+`（byte6 bit7 + byte7 bit0 = CRC bit0）会导致 `steerFaultTemporary` 随机误报。改为 `52|2@0+`（byte6 bit4-5，行驶=1/静止=0，稳定不随机）。
 - **GW_244 ACC_AccTrqReq**：原 `96|16@0+`（小端）错误。实际 **byte12-13 为 Motorola 大端**（651s ACC 段 0x0574=1396 合理，小端 29701 超范围）。改为 `103|16@1+`。
 - **GW_244 byte0 加速度**：651-685s ACC 激活段验证，byte0 在 0x5D-0x6B（93-107）微调，对应 ±0.35 m/s²（`(raw-100)*0.05`），与 byte12-13 扭矩请求同向变化，确认 `0|8@0+ (0.05,-5.0)` 正确。
 - **GW_244 byte6 高 4 位**：动态标志（0x0/0x1/0x2/0x3/0x5），非恒 0；ACC_AccTrqReqActive(44|1=byte5 bit4) 在 ACC 激活时置 1 已确认。byte1(ACCMode)=01/02 与 byte6 高 4 位是两个独立信号，语义待实车。
+
+#### 13. 三次复核修正（2026-08，新增 dangwei/zhuanxiang/accanjian 三份实车日志 + 用户实测结论）
+- **刹车踏板 = 0x277 (GW_277) byte0**：值 44=松开 / 172=踩下（两态），dangwei 切挡时 byte0 在 44↔172 跳变验证。`brakePressed = byte0 > 100`。新增 `BO_ 631 GW_277`，`ESP_BrakePedalStatus : 0|8@0+`。
+- **油门踏板 = 0x26A (GW_26A) byte5**：值 31=怠速 / 136=踩到底（连续），accanjian 踩油门时 byte5 升到 122-136 验证。`gasPressed = byte5 > 50`。新增 `BO_ 618 GW_26A`，`EMS_AccelPedalPosition : 40|8@0+`。
+- **CRC/counter 验证**：0x277/0x26A 均 crc8(byte0-6, init=0x6C)==byte7（12055/12081 帧全匹配），counter 在 byte6 低 4 位（48|4）。
+- **删除 GW_17A (BO_ 378) / GW_1C6 (BO_ 454)**：用户确认 UNIT 无 0x17A/0x1C6（新日志 0 条）。车速仅 GW_187。GW_17A/GW_1C6 仅为 Z6 IDD 所用（保留在 changan_pt.dbc）。
+- **GW_196 撤销 EMS 信号**：二次复核误判 GW_196 byte0 为刹车，实为 ESP 状态字节（恒 0），撤销 `EMS_BrakePedalStatus`/`EMS_RealAccPedal`（GW_196 仅保留 COUNTER/CHECKSUM）。carstate 的 Z6 分支仍用 changan_pt.dbc 不受影响。
+- **carstate pt_messages 按 fingerprint 拆分**：UNIT 加 GW_39B/GW_277/GW_26A；Z6/Z6 iDD 加 GW_338/GW_17A/GW_1C6。
 
 ### 仍需手动确认 / 实车验证项
 
@@ -277,7 +285,8 @@ comma 正在招聘工程师来开发 opendbc 和 [openpilot](https://github.com/
 |----|------|------|
 | GW_17E 扭矩传感器 | 按 byte0 有符号 8 位、0x7F=0 Nm、(0.1,-12.7) 解码；byte1 bit5-7 为 3 位状态（非扭矩） | 实车打方向对比仪表/手感确认量程 |
 | GW_170 实际扭矩 | 位置未确认（byte2-4 变化） | 需反向或实车验证 |
-| GW_196 油门 | byte2 为实际油门/发动机扭矩（含 ACC，静止 0x00、67km/h 巡航 0x1E）；驾驶员油门位未确认 | 实车踩油门录制确认 gasPressed 位 |
+| 刹车踏板缩放 | 0x277 byte0 两态（44/172）；刹车行程中间值未在日志出现 | 实车缓踩刹车确认是否连续位置及量程 |
+| 油门踏板缩放 | 0x26A byte5 连续（31 怠速~136 满）；31-35 为怠速抖动，阈值 50 | 实车缓踩油门确认量程与 100% 对应值 |
 | 0x244 ACC_ACCMode | byte1（日志值 00/01/02，01=待机、02=激活）；byte6 高 4 位是独立动态标志 | 需 ACC 激活/退出录制确认语义 |
 | 0x244 AccTrqReq | 已确认 byte12-13 **大端**正值（651s 1396-4100）；carcontroller 正值发送 | **映射需实车标定**（offset/gain，当前 400-1100 偏小） |
 | 0x307 ACC_SetSpeed / 0x31A 各信号位 | 位置未确认；中继已改为保留原值 | 实车开启 ACC 录制确认 |
@@ -291,6 +300,6 @@ comma 正在招聘工程师来开发 opendbc 和 [openpilot](https://github.com/
 ### 需要重新录制的场景
 1. **ACC 激活/退出**（含加速、减速、跟停、起步）——验证 0x244 加速度/ACCMode/AccTrqReq 语义与映射
 2. **方向盘打满两个方向**——验证 0x1BA 角度命令编码与 0x180 量程
-3. **急刹车/急加速**——验证 0x196 踏板信号与 0x244 编码
+3. **缓踩/缓松刹车、缓踩油门**——验证 0x277 byte0、0x26A byte5 是否为连续位置及量程（0-100%）
 4. **按 IACC/RES+/SET-/CANCEL 按钮**——验证 0x28C 全部按钮位
 5. **IACC 激活状态下的 bus2 录制**——确认相机消息是否出现在 bus2

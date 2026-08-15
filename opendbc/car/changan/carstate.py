@@ -98,8 +98,9 @@ class CarState(CarStateBase):
       ret.rightBlindspot = False
     elif self.CP.carFingerprint == CAR.CHANGAN_UNI_T:
       gear_raw = (int(cp.vl["GW_39B"]["GearBit1"]) << 1) | int(cp.vl["GW_39B"]["GearBit0"])
-      ret.brakePressed = cp.vl["GW_196"]["EMS_BrakePedalStatus"] != 0
-      ret.gasPressed = cp.vl["GW_196"]["EMS_RealAccPedal"] != 0
+      # brake = 0x277 byte0 (44=release, 172=pressed); accel = 0x26A byte5 (31=idle, 136=full)
+      ret.brakePressed = cp.vl["GW_277"]["ESP_BrakePedalStatus"] > 100
+      ret.gasPressed = cp.vl["GW_26A"]["EMS_AccelPedalPosition"] > 50
       self.steeringPressedMin = 1
       self.steeringPressedMax = 6
       ret.leftBlindspot = False
@@ -202,13 +203,11 @@ class CarState(CarStateBase):
       ("GW_28B", 0),
       ("GW_50", 0),
       ("GW_187", 0),
-      ("GW_17A", 0),
       ("GW_17E", 0),
       ("GW_170", 0),
       ("GW_180", 0),
       ("GW_196", 0),
       ("GW_1A6", 0),
-      ("GW_1C6", 0),
       ("GW_24F", 0),
       ("GW_28C", 0),
       ("GW_1BA", 0),
@@ -217,9 +216,9 @@ class CarState(CarStateBase):
       ("GW_31A", 0),
     ]
     if CP.carFingerprint == CAR.CHANGAN_UNI_T:
-      pt_messages.append(("GW_39B", 0))
+      pt_messages += [("GW_39B", 0), ("GW_277", 0), ("GW_26A", 0)]
     else:
-      pt_messages.append(("GW_338", 0))
+      pt_messages += [("GW_338", 0), ("GW_17A", 0), ("GW_1C6", 0)]
     cam_messages = [
       ("GW_244", 0),
       ("GW_1BA", 0),
