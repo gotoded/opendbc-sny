@@ -22,8 +22,8 @@ class CarState(CarStateBase):
     elif self.CP.carFingerprint == CAR.CHANGAN_Z6_IDD:
       self.shifter_values = can_define.dv["GW_338"]["TCU_GearForDisplay"]
     elif self.CP.carFingerprint == CAR.CHANGAN_UNI_T:
-      self.shifter_values = None  # UNI-T gear is decoded from GW_39B bits in update()
-      self.gear_names = {0: "P", 1: "R", 2: "N", 3: "D"}
+      self.shifter_values = None  # UNI-T gear is decoded from GW_1A8.GearPosition in update()
+      self.gear_names = {0: "P", 1: "N", 9: "R", 10: "D"}
     self.eps_torque_scale = EPS_SCALE[CP.carFingerprint] / 100.0
     self.cluster_speed_hyst_gap = CV.KPH_TO_MS / 2.0
     self.cluster_min_speed = CV.KPH_TO_MS / 2.0
@@ -97,7 +97,7 @@ class CarState(CarStateBase):
       ret.leftBlindspot = False
       ret.rightBlindspot = False
     elif self.CP.carFingerprint == CAR.CHANGAN_UNI_T:
-      gear_raw = (int(cp.vl["GW_39B"]["GearBit1"]) << 1) | int(cp.vl["GW_39B"]["GearBit0"])
+      gear_raw = int(cp.vl["GW_1A8"]["GearPosition"])  # 0=P 1=N 9=R 10=D
       # brake = 0x277 byte0 (44=release, 172=pressed); accel = 0x26A byte5 (31=idle, 136=full)
       ret.brakePressed = cp.vl["GW_277"]["ESP_BrakePedalStatus"] > 100
       ret.gasPressed = cp.vl["GW_26A"]["EMS_AccelPedalPosition"] > 50
@@ -216,7 +216,7 @@ class CarState(CarStateBase):
       ("GW_31A", 0),
     ]
     if CP.carFingerprint == CAR.CHANGAN_UNI_T:
-      pt_messages += [("GW_39B", 0), ("GW_277", 0), ("GW_26A", 0)]
+      pt_messages += [("GW_1A8", 0), ("GW_277", 0), ("GW_26A", 0)]
     else:
       pt_messages += [("GW_338", 0), ("GW_17A", 0), ("GW_1C6", 0)]
     cam_messages = [
