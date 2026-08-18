@@ -71,7 +71,6 @@ BO_ 422 GW_1A6: 8 XXX
 
 BO_ 424 GW_1A8: 8 XXX
  SG_ GearPosition : 8|4@1+ (1,0) [0|15] "" XXX
- SG_ GearPositionSub : 16|8@1+ (1,0) [0|255] "" XXX
  SG_ COUNTER : 48|4@0+ (1,0) [0|15] "" XXX
  SG_ CHECKSUM : 63|8@0+ (1,0) [0|255] "" XXX
 
@@ -173,7 +172,6 @@ CM_ BO_ 406 "ESP zhuangtai (ESP status, 0x196)";
 CM_ BO_ 422 "ESP zhuangtai (ESP status GW_1A6, xinhao dai queren)";
 CM_ BO_ 424 "dangwei (gear, 0x1A8 byte1 low nibble 0x0A=D 0x00=P 0x09=R 0x01=N; byte2 low nibble same gear code, high nibble substate D=0 P=2 R=1 N=3)";
 CM_ SG_ 424 GearPosition "dangwei byte1 (gear code 0=P 1=N 9=R 10=D)";
-CM_ SG_ 424 GearPositionSub "dangwei byte2 (0x0A=D 0x20=P 0x19=R 0x31=N)";
 CM_ BO_ 442 "zhuanxiangjiao zhiling (steering angle command GW_1BA)";
 CM_ SG_ 442 EPS_AngleCmd "zhuanxiang zhiling (steering angle cmd)";
 CM_ BO_ 580 "ACC jiasudu zhiling (ACC acceleration command GW_244)";
