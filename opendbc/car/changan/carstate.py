@@ -98,9 +98,8 @@ class CarState(CarStateBase):
       ret.rightBlindspot = False
     elif self.CP.carFingerprint == CAR.CHANGAN_UNI_T:
       gear_raw = int(cp.vl["GW_1A8"]["GearPosition"])  # 0=P 1=N 9=R 10=D
-      # brake = 0x277 byte0 (44=release, 172=pressed); accel = 0x26A byte5 (31=idle, 136=full)
-      ret.brakePressed = cp.vl["GW_277"]["ESP_BrakePedalStatus"] > 100
-      ret.gasPressed = cp.vl["GW_26A"]["EMS_AccelPedalPosition"] > 50
+      ret.brakePressed = cp.vl["GW_277"]["ESP_BrakeSwitch"] != 0   # byte0 bit7
+      ret.gasPressed = cp.vl["GW_26A"]["EMS_AccelSwitch"] != 0    # byte0 bit0
       self.steeringPressedMin = 1
       self.steeringPressedMax = 6
       ret.leftBlindspot = False

@@ -116,11 +116,13 @@ BO_ 591 GW_24F: 8 XXX
  SG_ CHECKSUM : 63|8@0+ (1,0) [0|255] "" XXX
 
 BO_ 618 GW_26A: 8 XXX
+ SG_ EMS_AccelSwitch : 7|1@0+ (1,0) [0|1] "" XXX
  SG_ EMS_AccelPedalPosition : 40|8@0+ (1,0) [0|255] "" XXX
  SG_ COUNTER : 48|4@0+ (1,0) [0|15] "" XXX
  SG_ CHECKSUM : 63|8@0+ (1,0) [0|255] "" XXX
 
 BO_ 631 GW_277: 8 XXX
+ SG_ ESP_BrakeSwitch : 0|1@0+ (1,0) [0|1] "" XXX
  SG_ ESP_BrakePedalStatus : 0|8@0+ (1,0) [0|255] "" XXX
  SG_ COUNTER : 48|4@0+ (1,0) [0|15] "" XXX
  SG_ CHECKSUM : 63|8@0+ (1,0) [0|255] "" XXX
@@ -201,9 +203,11 @@ CM_ BO_ 588 "weizhi xinhao (unknown signal 0x24C)";
 CM_ BO_ 591 "EPS guzhang zhuangtai (EPS fault status)";
 CM_ SG_ 591 EPS_EPSFailed "EPS guzhang biaoji (EPS failed flag)";
 CM_ BO_ 618 "youmen taban (accel pedal GW_26A)";
+CM_ SG_ 618 EMS_AccelSwitch "youmen kaiguan byte0 bit0 (accel switch, 0=release 1=pressed)";
 CM_ SG_ 618 EMS_AccelPedalPosition "youmen weizhi byte5 (accel pedal position, 31=idle 136=full)";
 CM_ BO_ 631 "shache taban (brake pedal GW_277)";
-CM_ SG_ 631 ESP_BrakePedalStatus "shache byte0 (brake pedal, 44=release 172=pressed)";
+CM_ SG_ 631 ESP_BrakeSwitch "shache kaiguan byte0 bit7 (brake switch, 0=release 1=pressed)";
+CM_ SG_ 631 ESP_BrakePedalStatus "shache byte0 (brake pedal, 0x2C=release 0xAC=pressed, bit7 is switch)";
 CM_ BO_ 651 "cheshen kongzhi BCM (body control: doors/turn signals)";
 CM_ SG_ 651 BCM_TurnIndicatorRight "you zhuanxiang deng (right turn signal)";
 CM_ SG_ 651 BCM_TurnIndicatorLeft "zuo zhuanxiang deng (left turn signal)";
@@ -223,6 +227,9 @@ CM_ SG_ 923 GearBit0 "dangwei bit0 (gear bit0)";
 CM_ SG_ 923 GearBit1 "dangwei bit1 (gear bit1)";
 
 VAL_ 424 GearPosition 0 "P" 1 "N" 9 "R" 10 "D";
+
+VAL_ 631 ESP_BrakeSwitch 0 "release" 1 "pressed";
+VAL_ 618 EMS_AccelSwitch 0 "release" 1 "pressed";
 
 VAL_ 923 GearBit0 0 "0" 1 "1";
 VAL_ 923 GearBit1 0 "0" 1 "1";
