@@ -45,7 +45,7 @@ BO_ 368 GW_170: 8 ESP
  SG_ CHECKSUM : 63|8@0+ (1,0) [0|255] "" XXX
 
 BO_ 382 GW_17E: 8 XXX
- SG_ EPS_MeasuredTorsionBarTorque : 0|8@0- (0.1,-12.7) [-12.7|12.7] "Nm" XXX
+ SG_ EPS_MeasuredTorsionBarTorque : 0|8@0+ (0.1,-12.7) [-12.7|12.7] "Nm" XXX
  SG_ EPS_RollingCounter_17E : 48|4@0+ (1,0) [0|15] "" XXX
  SG_ EPS_LatCtrlAvailabilityStatus : 52|2@0+ (1,0) [0|3] "" XXX
  SG_ EPS_CRCCheck_17E : 63|8@0+ (1,0) [0|255] "" XXX
@@ -59,7 +59,7 @@ BO_ 384 GW_180: 8 XXX
 BO_ 388 NEW_MSG_184: 8 XXX
 
 BO_ 391 GW_187: 8 XXX
- SG_ ESP_VehicleSpeed : 39|16@1+ (0.05,0) [0|65535] "km/h" XXX
+ SG_ ESP_VehicleSpeed : 40|8@1+ (1,0) [0|255] "km/h" XXX
  SG_ COUNTER : 48|4@0+ (1,0) [0|15] "" XXX
  SG_ CHECKSUM : 63|8@0+ (1,0) [0|255] "" XXX
 
