@@ -34,11 +34,6 @@ BS_:
 
 BU_: XXX
 
-BO_ 80 GW_50: 4 XXX
- SG_ SRS_CopilotBuckleSwitchStatus : 12|1@0+ (1,0) [0|1] "" XXX
- SG_ SRS_DriverBuckleSwitchStatus : 14|1@0+ (1,0) [0|1] "" XXX
- SG_ COUNTER : 24|4@0+ (1,0) [0|15] "" XXX
-
 BO_ 368 GW_170: 8 ESP
  SG_ EPS_ActualTorsionBarTorq : 23|16@0+ (1,-5533) [0|65535] "" XXX
  SG_ COUNTER : 48|4@0+ (1,0) [0|15] "" XXX
@@ -58,14 +53,6 @@ BO_ 384 GW_180: 8 XXX
 
 BO_ 391 GW_187: 8 XXX
  SG_ ESP_VehicleSpeed : 40|8@1+ (1,0) [0|255] "km/h" XXX
- SG_ COUNTER : 48|4@0+ (1,0) [0|15] "" XXX
- SG_ CHECKSUM : 63|8@0+ (1,0) [0|255] "" XXX
-
-BO_ 406 GW_196: 8 XXX
- SG_ COUNTER : 48|4@0+ (1,0) [0|15] "" XXX
- SG_ CHECKSUM : 63|8@0+ (1,0) [0|255] "" XXX
-
-BO_ 422 GW_1A6: 8 XXX
  SG_ COUNTER : 48|4@0+ (1,0) [0|15] "" XXX
  SG_ CHECKSUM : 63|8@0+ (1,0) [0|255] "" XXX
 
@@ -114,7 +101,6 @@ BO_ 631 GW_277: 8 XXX
 BO_ 651 GW_28B: 8 XXX
  SG_ BCM_TurnIndicatorRight : 19|1@0+ (1,0) [0|3] "" XXX
  SG_ BCM_TurnIndicatorLeft : 21|1@0+ (1,0) [0|1] "" XXX
- SG_ BCM_DriverDoorStatus : 23|1@0+ (1,0) [0|1] "" XXX
  SG_ COUNTER : 48|4@0+ (1,0) [0|15] "" XXX
  SG_ CHECKSUM : 63|8@0+ (1,0) [0|255] "" XXX
 
@@ -152,12 +138,6 @@ BO_ 794 GW_31A: 64 XXX
  SG_ ACC_RollingCounter_367 : 240|4@0+ (1,0) [0|15] "" XXX
  SG_ ACC_CRCCheck_367 : 255|8@0+ (1,0) [0|255] "" XXX
 
-BO_ 923 GW_39B: 8 XXX
- SG_ GearBit0 : 40|1@0+ (1,0) [0|1] "" XXX
- SG_ GearBit1 : 45|1@0+ (1,0) [0|1] "" XXX
-
-CM_ BO_ 80 "SRS anquandai zhuangtai (SRS seatbelt status)";
-CM_ SG_ 80 SRS_DriverBuckleSwitchStatus "zhujia anquandai shifou jiechuo (driver buckle)";
 CM_ BO_ 368 "EPS shiji niuju (EPS actual torsion bar torque)";
 CM_ SG_ 368 EPS_ActualTorsionBarTorq "fangxiangpan niuju (steering torque)";
 CM_ BO_ 382 "EPS niuju chuanganqi (EPS measured torque sensor)";
@@ -168,8 +148,6 @@ CM_ SG_ 384 SAS_SteeringAngle "zhuanxiangjiao du (steering angle deg)";
 CM_ SG_ 384 SAS_SteeringAngleSpeed "zhuanxiangjiao sudu (steering angle rate)";
 CM_ BO_ 391 "chesu xinhao (vehicle speed, GW_187)";
 CM_ SG_ 391 ESP_VehicleSpeed "chesu km/h (vehicle speed)";
-CM_ BO_ 406 "ESP zhuangtai (ESP status, 0x196)";
-CM_ BO_ 422 "ESP zhuangtai (ESP status GW_1A6, xinhao dai queren)";
 CM_ BO_ 424 "dangwei (gear, 0x1A8 byte1 low nibble 0x0A=D 0x00=P 0x09=R 0x01=N)";
 CM_ SG_ 424 GearPosition "dangwei byte1 (gear code 0=P 1=N 9=R 10=D)";
 CM_ BO_ 442 "zhuanxiangjiao zhiling (steering angle command GW_1BA)";
@@ -186,7 +164,6 @@ CM_ BO_ 631 "shache taban (brake pedal GW_277)";
 CM_ BO_ 651 "cheshen kongzhi BCM (body control: doors/turn signals)";
 CM_ SG_ 651 BCM_TurnIndicatorRight "you zhuanxiang deng (right turn signal)";
 CM_ SG_ 651 BCM_TurnIndicatorLeft "zuo zhuanxiang deng (left turn signal)";
-CM_ SG_ 651 BCM_DriverDoorStatus "zhujia men zhuangtai (driver door open)";
 CM_ BO_ 652 "fangxiangpan anjian (steering wheel buttons)";
 CM_ SG_ 652 GW_MFS_Cancle_switch_signal "CANCEL anjian";
 CM_ SG_ 652 GW_MFS_RESPlus_switch_signal "RES+ anjian";
@@ -197,11 +174,6 @@ CM_ SG_ 775 ACC_SetSpeed "she ding sudu (set speed)";
 CM_ BO_ 794 "IACC zhuangtai (IACC/HWA status GW_31A)";
 CM_ SG_ 794 ACC_IACCHWAEnable "IACC jihuo (IACC enable)";
 CM_ SG_ 794 ACC_TargetBasedLateralControl "jihuo LKA (lateral control active)";
-CM_ BO_ 923 "0x39B bu shi dangwei (NOT gear in dangwei.csv: byte5 const; real gear = 0x1A8)";
-CM_ SG_ 923 GearBit0 "dangwei bit0 (gear bit0)";
-CM_ SG_ 923 GearBit1 "dangwei bit1 (gear bit1)";
 VAL_ 424 GearPosition 0 "P" 1 "N" 9 "R" 10 "D";
 VAL_ 618 EMS_AccelSwitch 0 "release" 1 "pressed";
 VAL_ 631 ESP_BrakePedalStatus 0 "release" 1 "pressed";
-VAL_ 923 GearBit0 0 "0" 1 "1";
-VAL_ 923 GearBit1 0 "0" 1 "1";

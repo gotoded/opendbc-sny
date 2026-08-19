@@ -68,8 +68,12 @@ class CarState(CarStateBase):
     cp_cam = can_parsers[Bus.cam]
     ret = structs.CarState()
 
-    ret.doorOpen = any([cp.vl["GW_28B"]["BCM_DriverDoorStatus"]])
-    ret.seatbeltUnlatched = cp.vl["GW_50"]["SRS_DriverBuckleSwitchStatus"] == 1
+    if self.CP.carFingerprint == CAR.CHANGAN_UNI_T:
+      ret.doorOpen = False
+      ret.seatbeltUnlatched = False
+    else:
+      ret.doorOpen = any([cp.vl["GW_28B"]["BCM_DriverDoorStatus"]])
+      ret.seatbeltUnlatched = cp.vl["GW_50"]["SRS_DriverBuckleSwitchStatus"] == 1
     ret.parkingBrake = False
 
     if self.CP.carFingerprint == CAR.CHANGAN_Z6_IDD:
@@ -200,13 +204,10 @@ class CarState(CarStateBase):
   def get_can_parsers(CP):
     pt_messages = [
       ("GW_28B", 0),
-      ("GW_50", 0),
       ("GW_187", 0),
       ("GW_17E", 0),
       ("GW_170", 0),
       ("GW_180", 0),
-      ("GW_196", 0),
-      ("GW_1A6", 0),
       ("GW_24F", 0),
       ("GW_28C", 0),
       ("GW_1BA", 0),
@@ -217,7 +218,7 @@ class CarState(CarStateBase):
     if CP.carFingerprint == CAR.CHANGAN_UNI_T:
       pt_messages += [("GW_1A8", 0), ("GW_277", 0), ("GW_26A", 0)]
     else:
-      pt_messages += [("GW_338", 0), ("GW_17A", 0), ("GW_1C6", 0)]
+      pt_messages += [("GW_338", 0), ("GW_17A", 0), ("GW_1C6", 0), ("GW_50", 0), ("GW_196", 0), ("GW_1A6", 0)]
     cam_messages = [
       ("GW_244", 0),
       ("GW_1BA", 0),
