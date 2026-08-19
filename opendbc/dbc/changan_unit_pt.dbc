@@ -99,17 +99,17 @@ BO_ 631 GW_277: 8 XXX
  SG_ CHECKSUM : 63|8@0+ (1,0) [0|255] "" XXX
 
 BO_ 651 GW_28B: 8 XXX
- SG_ BCM_TurnIndicatorRight : 19|1@0+ (1,0) [0|3] "" XXX
+ SG_ BCM_TurnIndicatorRight : 19|1@0+ (1,0) [0|1] "" XXX
  SG_ BCM_TurnIndicatorLeft : 21|1@0+ (1,0) [0|1] "" XXX
  SG_ COUNTER : 48|4@0+ (1,0) [0|15] "" XXX
  SG_ CHECKSUM : 63|8@0+ (1,0) [0|255] "" XXX
 
 BO_ 652 GW_28C: 8 XXX
- SG_ Button_ACC : 0|1@0+ (1,0) [0|1] "" XXX
- SG_ GW_MFS_Cancle_switch_signal : 1|1@0+ (1,0) [0|1] "" XXX
- SG_ GW_MFS_RESPlus_switch_signal : 4|1@0+ (1,0) [0|1] "" XXX
- SG_ GW_MFS_SETReduce_switch_signal : 6|1@0+ (1,0) [0|1] "" XXX
- SG_ GW_MFS_IACCenable_switch_signal : 12|1@0+ (1,0) [0|1] "" XXX
+ SG_ CruiseButton : 0|1@0+ (1,0) [0|1] "" XXX
+ SG_ CruiseCancel : 2|1@0+ (1,0) [0|1] "" XXX
+ SG_ CruiseResume : 4|1@0+ (1,0) [0|1] "" XXX
+ SG_ CruiseSet : 6|1@0+ (1,0) [0|1] "" XXX
+ SG_ IaccButton : 12|1@0+ (1,0) [0|1] "" XXX
  SG_ COUNTER : 48|4@0+ (1,0) [0|15] "" XXX
  SG_ CHECKSUM : 63|8@0+ (1,0) [0|255] "" XXX
 
@@ -165,10 +165,11 @@ CM_ BO_ 651 "cheshen kongzhi BCM (body control: doors/turn signals)";
 CM_ SG_ 651 BCM_TurnIndicatorRight "you zhuanxiang deng (right turn signal)";
 CM_ SG_ 651 BCM_TurnIndicatorLeft "zuo zhuanxiang deng (left turn signal)";
 CM_ BO_ 652 "fangxiangpan anjian (steering wheel buttons)";
-CM_ SG_ 652 GW_MFS_Cancle_switch_signal "CANCEL anjian";
-CM_ SG_ 652 GW_MFS_RESPlus_switch_signal "RES+ anjian";
-CM_ SG_ 652 GW_MFS_SETReduce_switch_signal "SET- anjian";
-CM_ SG_ 652 GW_MFS_IACCenable_switch_signal "IACC anjian";
+CM_ SG_ 652 CruiseButton "dingsu";
+CM_ SG_ 652 CruiseCancel "Exit_IACC";
+CM_ SG_ 652 CruiseResume "RES+ anjian";
+CM_ SG_ 652 CruiseSet "SET- anjian";
+CM_ SG_ 652 IaccButton "IACC anjian";
 CM_ BO_ 775 "ACC xunhang xianshi (ACC cruise display GW_307)";
 CM_ SG_ 775 ACC_SetSpeed "she ding sudu (set speed)";
 CM_ BO_ 794 "IACC zhuangtai (IACC/HWA status GW_31A)";
@@ -177,3 +178,10 @@ CM_ SG_ 794 ACC_TargetBasedLateralControl "jihuo LKA (lateral control active)";
 VAL_ 424 GearPosition 0 "P" 1 "N" 9 "R" 10 "D";
 VAL_ 618 EMS_AccelSwitch 0 "release" 1 "pressed";
 VAL_ 631 ESP_BrakePedalStatus 0 "release" 1 "pressed";
+VAL_ 651 BCM_TurnIndicatorRight 0 "no" 1 "turn_right";
+VAL_ 651 BCM_TurnIndicatorLeft 0 "no" 1 "turn_left";
+VAL_ 652 CruiseButton 0 "no" 1 "Press";
+VAL_ 652 CruiseCancel 0 "no" 1 "Press";
+VAL_ 652 CruiseResume 0 "no" 1 "reset/+";
+VAL_ 652 CruiseSet 0 "no" 1 "set-";
+VAL_ 652 IaccButton 0 "no" 1 "On_IACC";
