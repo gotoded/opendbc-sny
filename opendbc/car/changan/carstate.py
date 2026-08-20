@@ -139,7 +139,21 @@ class CarState(CarStateBase):
 
     ret.steerFaultTemporary = cp.vl["GW_24F"]["EPS_EPSFailed"] != 0 or cp.vl["GW_17E"]["EPS_LatCtrlAvailabilityStatus"] == 2
 
-    self.iacc_enable_switch_button_pressed = cp.vl["GW_28C"]["GW_MFS_IACCenable_switch_signal"]
+    # GW_28C signal names differ per PT DBC: UNI-T uses changan_unit_pt.dbc
+    # (CruiseButton/CruiseCancel/CruiseResume/CruiseSet/IaccButton), while
+    # Z6 / Z6 iDD use changan_pt.dbc (GW_MFS_* names).
+    if self.CP.carFingerprint == CAR.CHANGAN_UNI_T:
+      gw28c = cp.vl["GW_28C"]
+      iacc_btn = gw28c["IaccButton"]
+      res_btn = gw28c["CruiseResume"]
+      set_btn = gw28c["CruiseSet"]
+    else:
+      gw28c = cp.vl["GW_28C"]
+      iacc_btn = gw28c["GW_MFS_IACCenable_switch_signal"]
+      res_btn = gw28c["GW_MFS_RESPlus_switch_signal"]
+      set_btn = gw28c["GW_MFS_SETReduce_switch_signal"]
+
+    self.iacc_enable_switch_button_pressed = iacc_btn
     self.iacc_enable_switch_button_rising_edge = self.iacc_enable_switch_button_pressed == 1 and self.iacc_enable_switch_button_prev == 0
 
     if self.cruiseEnable and (self.iacc_enable_switch_button_rising_edge or ret.brakePressed):
@@ -152,15 +166,15 @@ class CarState(CarStateBase):
     if self.cruiseEnable and not self.cruiseEnablePrev:
       self.cruiseSpeed = speed if self.cruiseSpeed == 0 or self.cruise_control_mode == 0 else self.cruiseSpeed
 
-    if cp.vl["GW_28C"]["GW_MFS_RESPlus_switch_signal"] == 1 and self.buttonPlus == 0 and self.cruiseEnable:
+    if res_btn == 1 and self.buttonPlus == 0 and self.cruiseEnable:
       self.cruiseSpeed = ((self.cruiseSpeed // 5) + 1) * 5
 
-    if cp.vl["GW_28C"]["GW_MFS_SETReduce_switch_signal"] == 1 and self.buttonReduce == 0 and self.cruiseEnable:
+    if set_btn == 1 and self.buttonReduce == 0 and self.cruiseEnable:
       self.cruiseSpeed = max((((self.cruiseSpeed // 5) - 1) * 5), 0)
 
     self.cruiseEnablePrev = self.cruiseEnable
-    self.buttonPlus = cp.vl["GW_28C"]["GW_MFS_RESPlus_switch_signal"]
-    self.buttonReduce = cp.vl["GW_28C"]["GW_MFS_SETReduce_switch_signal"]
+    self.buttonPlus = res_btn
+    self.buttonReduce = set_btn
 
     # NOTE: the UNI-T 2022 captures (01/02/dangwei.csv) show the ADAS
     # command messages (0x1BA/0x244/0x307/0x31A) only on bus 0 (100Hz, relayed
