@@ -23,7 +23,7 @@ class CarState(CarStateBase):
       self.shifter_values = can_define.dv["GW_338"]["TCU_GearForDisplay"]
     elif self.CP.carFingerprint == CAR.CHANGAN_UNI_T:
       self.shifter_values = None  # UNI-T gear is decoded from GW_1A8.GearPosition in update()
-      self.gear_names = {0: "P", 1: "N", 9: "R", 10: "D"}
+      self.gear_names = {0: "N", 10: "P", 1: "1", 2: "2", 3: "3", 4: "4", 5: "5", 6: "6", 7: "7", 9: "R"}
     self.eps_torque_scale = EPS_SCALE[CP.carFingerprint] / 100.0
     self.cluster_speed_hyst_gap = CV.KPH_TO_MS / 2.0
     self.cluster_min_speed = CV.KPH_TO_MS / 2.0
