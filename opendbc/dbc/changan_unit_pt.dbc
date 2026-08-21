@@ -181,6 +181,7 @@ VAL_ 618 EMS_AccelSwitch 0 "release" 1 "pressed";
 VAL_ 631 ESP_BrakePedalStatus 0 "release" 1 "pressed";
 VAL_ 651 BCM_TurnIndicatorRight 0 "no" 1 "turn_right";
 VAL_ 651 BCM_TurnIndicatorLeft 0 "no" 1 "turn_left";
+VAL_ 651 BCM_DriverDoorStatus "0 open";
 VAL_ 652 CruiseButton 0 "no" 1 "Press";
 VAL_ 652 CruiseCancel 0 "no" 1 "Press";
 VAL_ 652 CruiseResume 0 "no" 1 "reset/+";
