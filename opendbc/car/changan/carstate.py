@@ -23,7 +23,7 @@ class CarState(CarStateBase):
       self.shifter_values = can_define.dv["GW_338"]["TCU_GearForDisplay"]
     elif self.CP.carFingerprint == CAR.CHANGAN_UNI_T:
       self.shifter_values = None  # UNI-T gear is decoded from GW_1A8.GearPosition in update()
-      self.gear_names = {0: "N", 10: "P", 1: "1", 2: "2", 3: "3", 4: "4", 5: "5", 6: "6", 7: "7", 9: "R"}
+      self.gear_names = {0: "N", 1: "D", 2: "D", 3: "D", 4: "D", 5: "D", 6: "D", 7: "D", 9: "R", 10: "P"}
     self.eps_torque_scale = EPS_SCALE[CP.carFingerprint] / 100.0
     self.cluster_speed_hyst_gap = CV.KPH_TO_MS / 2.0
     self.cluster_min_speed = CV.KPH_TO_MS / 2.0
@@ -68,12 +68,8 @@ class CarState(CarStateBase):
     cp_cam = can_parsers[Bus.cam]
     ret = structs.CarState()
 
-    if self.CP.carFingerprint == CAR.CHANGAN_UNI_T:
-      ret.doorOpen = False
-      ret.seatbeltUnlatched = False
-    else:
-      ret.doorOpen = any([cp.vl["GW_28B"]["BCM_DriverDoorStatus"]])
-      ret.seatbeltUnlatched = cp.vl["GW_50"]["SRS_DriverBuckleSwitchStatus"] == 1
+    ret.doorOpen = any([cp.vl["GW_28B"]["BCM_DriverDoorStatus"]])
+    ret.seatbeltUnlatched = cp.vl["GW_50"]["SRS_DriverBuckleSwitchStatus"] == 1
     ret.parkingBrake = False
 
     if self.CP.carFingerprint == CAR.CHANGAN_Z6_IDD:
@@ -101,7 +97,7 @@ class CarState(CarStateBase):
       ret.leftBlindspot = False
       ret.rightBlindspot = False
     elif self.CP.carFingerprint == CAR.CHANGAN_UNI_T:
-      gear_raw = int(cp.vl["GW_1A8"]["GearPosition"])  # 0=P 1=N 9=R 10=D
+      gear_raw = int(cp.vl["GW_1A8"]["GearPosition"])  # 0=N 1-7=D1-D7 9=R 10=P
       ret.brakePressed = cp.vl["GW_277"]["ESP_BrakePedalStatus"] != 0   # byte0 bit7
       ret.gasPressed = cp.vl["GW_26A"]["EMS_AccelSwitch"] != 0    # byte0 bit0
       self.steeringPressedMin = 1
@@ -230,7 +226,7 @@ class CarState(CarStateBase):
       ("GW_31A", 0),
     ]
     if CP.carFingerprint == CAR.CHANGAN_UNI_T:
-      pt_messages += [("GW_1A8", 0), ("GW_277", 0), ("GW_26A", 0)]
+      pt_messages += [("GW_1A8", 0), ("GW_277", 0), ("GW_26A", 0), ("GW_50", 0)]
     else:
       pt_messages += [("GW_338", 0), ("GW_17A", 0), ("GW_1C6", 0), ("GW_50", 0), ("GW_196", 0), ("GW_1A6", 0)]
     cam_messages = [

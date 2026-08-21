@@ -43,7 +43,8 @@ def create_244_command_a05(packer, accel, counter, longActive, accTrq):
 def create_244_command(packer, msg: dict, accel, counter, longActive, accTrq, vEgoRaw, is_unit: bool):
   values = msg.copy()
   if is_unit:
-    # UNI-T: ACC_ACCMode bit position not confirmed - keep camera value.
+    # UNIT 2022 DBC: ACC_ACCMode=8|8@0+, ACC_AccTrqReq=103|16@1+ (unsigned).
+    # Keep camera-relayed ACC_ACCMode; only update accel/counter/torque.
     values.update(
       {
         "ACC_ACCTargetAcceleration": accel,
