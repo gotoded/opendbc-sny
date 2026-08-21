@@ -101,6 +101,7 @@ BO_ 631 GW_277: 8 XXX
 BO_ 651 GW_28B: 8 XXX
  SG_ BCM_TurnIndicatorRight : 19|1@0+ (1,0) [0|1] "" XXX
  SG_ BCM_TurnIndicatorLeft : 21|1@0+ (1,0) [0|1] "" XXX
+ SG_ BCM_DriverDoorStatus : 23|1@0+ (1,0) [0|1] "" XXX
  SG_ COUNTER : 48|4@0+ (1,0) [0|15] "" XXX
  SG_ CHECKSUM : 63|8@0+ (1,0) [0|255] "" XXX
 
