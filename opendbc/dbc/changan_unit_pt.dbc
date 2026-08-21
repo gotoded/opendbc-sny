@@ -34,6 +34,11 @@ BS_:
 
 BU_: XXX
 
+BO_ 80 GW_50: 8 XXX
+ SG_ SRS_CopilotBuckleSwitchStatus : 12|1@0+ (1,0) [0|1] "" XXX
+ SG_ SRS_DriverBuckleSwitchStatus : 14|1@0+ (1,0) [0|1] "" XXX
+ SG_ COUNTER : 27|4@0+ (1,0) [0|15] "" XXX
+
 BO_ 368 GW_170: 8 ESP
  SG_ EPS_ActualTorsionBarTorq : 23|16@0+ (1,-5533) [0|65535] "" XXX
  SG_ COUNTER : 48|4@0+ (1,0) [0|15] "" XXX
@@ -176,6 +181,8 @@ CM_ SG_ 775 ACC_SetSpeed "she ding sudu (set speed)";
 CM_ BO_ 794 "IACC zhuangtai (IACC/HWA status GW_31A)";
 CM_ SG_ 794 ACC_IACCHWAEnable "IACC jihuo (IACC enable)";
 CM_ SG_ 794 ACC_TargetBasedLateralControl "jihuo LKA (lateral control active)";
+VAL_ 80 SRS_CopilotBuckleSwitchStatus 0 "close" 1 "open";
+VAL_ 80 SRS_DriverBuckleSwitchStatus 0 "close" 1 "open";
 VAL_ 424 GearPosition 0 "N" 1 "1" 2 "2" 3 "3" 4 "4" 5 "5" 6 "6" 7 "7" 9 "R" 10 "P";
 VAL_ 618 EMS_AccelSwitch 0 "release" 1 "pressed";
 VAL_ 631 ESP_BrakePedalStatus 0 "release" 1 "pressed";
@@ -187,3 +194,4 @@ VAL_ 652 CruiseCancel 0 "no" 1 "Press";
 VAL_ 652 CruiseResume 0 "no" 1 "reset/+";
 VAL_ 652 CruiseSet 0 "no" 1 "set-";
 VAL_ 652 IaccButton 0 "no" 1 "On_IACC";
+
