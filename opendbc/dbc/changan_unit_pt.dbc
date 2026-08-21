@@ -46,7 +46,7 @@ BO_ 382 GW_17E: 8 XXX
  SG_ EPS_CRCCheck_17E : 63|8@0+ (1,0) [0|255] "" XXX
 
 BO_ 384 GW_180: 8 XXX
- SG_ SAS_SteeringAngle : 1|16@1- (0.1,0) [-476|476] "deg" XXX
+ SG_ SAS_SteeringAngle : 0|16@1- (0.1,1) [-476|476] "deg" XXX
  SG_ SAS_SteeringAngleSpeed : 16|8@0+ (1,0) [0|255] "" XXX
  SG_ COUNTER : 48|4@0+ (1,0) [0|15] "" XXX
  SG_ CHECKSUM : 63|8@0+ (1,0) [0|255] "" XXX
