@@ -57,7 +57,7 @@ BO_ 384 GW_180: 8 XXX
  SG_ CHECKSUM : 63|8@0+ (1,0) [0|255] "" XXX
 
 BO_ 391 GW_187: 8 XXX
- SG_ ESP_VehicleSpeed : 40|8@1+ (1,0) [0|255] "km/h" XXX
+ SG_ ESP_VehicleSpeed : 39|16@0+ (0.05,0) [0|255] "km/h" XXX
  SG_ COUNTER : 48|4@0+ (1,0) [0|15] "" XXX
  SG_ CHECKSUM : 63|8@0+ (1,0) [0|255] "" XXX
 
