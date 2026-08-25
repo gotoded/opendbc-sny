@@ -143,19 +143,6 @@ BO_ 775 GW_307: 64 XXX
  SG_ ACC_RollingCounter_35F : 240|4@0+ (1,0) [0|15] "" XXX
  SG_ ACC_CRCCheck_35F : 255|8@0+ (1,0) [0|255] "" XXX
 
-BO_ 794 GW_31A: 64 XXX
- SG_ ACC_RollingCounter_36D : 48|4@0+ (1,0) [0|15] "" XXX
- SG_ ACC_CRCCheck_36D : 63|8@0+ (1,0) [0|255] "" XXX
- SG_ ACC_IACCHWAEnable : 68|1@0+ (1,0) [0|1] "" XXX
- SG_ ACC_TargetBasedLateralControl : 96|1@0+ (1,0) [0|1] "" XXX
- SG_ ACC_RollingCounter_30A : 112|4@0+ (1,0) [0|15] "" XXX
- SG_ ACC_CRCCheck_30A : 127|8@0+ (1,0) [0|255] "" XXX
- SG_ ACC_IACCHWAMode : 135|3@0+ (1,0) [0|7] "" XXX
- SG_ ACC_RollingCounter_30D : 176|4@0+ (1,0) [0|15] "" XXX
- SG_ ACC_CRCCheck_30D : 191|8@0+ (1,0) [0|255] "" XXX
- SG_ ACC_RollingCounter_367 : 240|4@0+ (1,0) [0|15] "" XXX
- SG_ ACC_CRCCheck_367 : 255|8@0+ (1,0) [0|255] "" XXX
-
 CM_ BO_ 368 "EPS shiji niuju (EPS actual torsion bar torque)";
 CM_ SG_ 368 EPS_ActualTorsionBarTorq "fangxiangpan niuju (steering torque)";
 CM_ BO_ 382 "EPS niuju chuanganqi (EPS measured torque sensor)";
