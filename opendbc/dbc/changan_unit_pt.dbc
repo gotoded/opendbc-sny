@@ -39,17 +39,6 @@ BO_ 80 GW_50: 8 XXX
  SG_ SRS_DriverBuckleSwitchStatus : 14|1@0+ (1,0) [0|1] "" XXX
  SG_ COUNTER : 27|4@0+ (1,0) [0|15] "" XXX
 
-BO_ 368 GW_170: 8 ESP
- SG_ EPS_ActualTorsionBarTorq : 23|16@0+ (1,-5533) [0|65535] "" XXX
- SG_ COUNTER : 48|4@0+ (1,0) [0|15] "" XXX
- SG_ CHECKSUM : 63|8@0+ (1,0) [0|255] "" XXX
-
-BO_ 382 GW_17E: 8 XXX
- SG_ EPS_MeasuredTorsionBarTorque : 0|8@0+ (0.1,-12.7) [-12.7|12.7] "Nm" XXX
- SG_ EPS_RollingCounter_17E : 48|4@0+ (1,0) [0|15] "" XXX
- SG_ EPS_LatCtrlAvailabilityStatus : 52|2@0+ (1,0) [0|3] "" XXX
- SG_ EPS_CRCCheck_17E : 63|8@0+ (1,0) [0|255] "" XXX
-
 BO_ 384 GW_180: 8 XXX
  SG_ SAS_SteeringAngle : 0|16@1- (0.1,1) [-476|476] "deg" XXX
  SG_ SAS_SteeringAngleSpeed : 16|8@0+ (1,0) [0|255] "" XXX
@@ -66,13 +55,6 @@ BO_ 424 GW_1A8: 8 XXX
  SG_ COUNTER : 48|4@0+ (1,0) [0|15] "" XXX
  SG_ CHECKSUM : 63|8@0+ (1,0) [0|255] "" XXX
 
-BO_ 442 GW_1BA: 32 XXX
- SG_ UNIT_1BA_Hdr0 : 0|8@0+ (1,0) [0|255] "" XXX
- SG_ UNIT_1BA_Hdr1 : 8|8@0+ (1,0) [0|255] "" XXX
- SG_ EPS_AngleCmd : 23|24@1+ (1,0) [0|16777215] "" XXX
- SG_ ACC_RollingCounter_1BA : 48|4@0+ (1,0) [0|15] "" XXX
- SG_ ACC_CRCCheck_1BA : 63|8@0+ (1,0) [0|255] "" XXX
-
 BO_ 518 GW_206: 8 XXX
  SG_ WheelSpeed_FR : 3|12@0+ (0.05,0) [0|204.75] "km/h" XXX
  SG_ WS_Standstill_FR : 6|1@0+ (1,0) [0|1] "" XXX
@@ -85,30 +67,9 @@ BO_ 520 GW_208: 8 XXX
  SG_ WheelSpeed_RL : 19|12@0+ (0.05,0) [0|204.75] "km/h" XXX
  SG_ WS_Standstill_RL : 22|1@0+ (1,0) [0|1] "" XXX
 
-BO_ 580 GW_244: 32 XXX
- SG_ ACC_ACCTargetAcceleration : 0|8@0+ (0.05,-5) [-10|10] "m/s2" XXX
- SG_ ACC_ACCMode : 8|8@0+ (1,0) [0|255] "" XXX
- SG_ ACC_AEBCtrlType : 34|3@0+ (1,0) [0|7] "" XXX
- SG_ ACC_FCWPreWarning : 35|1@0+ (1,0) [0|1] "" XXX
- SG_ ACC_AccTrqReqActive : 44|1@0+ (1,0) [0|1] "" XXX
- SG_ ACC_RollingCounter_24E : 48|4@0+ (1,0) [0|15] "" XXX
- SG_ ACC_ACCReq : 55|1@0+ (1,0) [0|1] "" XXX
- SG_ ACC_CRCCheck_24E : 63|8@0+ (1,0) [0|255] "" XXX
- SG_ ACC_AccTrqReq : 103|16@1+ (1,0) [-5000|5000] "" XXX
- SG_ ACC_RollingCounter_25E : 112|4@0+ (1,0) [0|15] "" XXX
- SG_ ACC_CRCCheck_25E : 127|8@0+ (1,0) [0|255] "" XXX
-
-BO_ 591 GW_24F: 8 XXX
- SG_ EPS_EPSFailed : 2|1@0+ (1,0) [0|1] "" XXX
- SG_ steeringTorqueEps_maybe : 23|8@0- (0.1,0) [0|255] "" XXX
- SG_ COUNTER : 48|4@0+ (1,0) [0|15] "" XXX
- SG_ CHECKSUM : 63|8@0+ (1,0) [0|255] "" XXX
-
 BO_ 618 GW_26A: 8 XXX
  SG_ EMS_AccelSwitch : 0|1@0+ (1,0) [0|1] "" XXX
- SG_ EMS_AccelPedalPosition : 40|8@0+ (1,0) [0|255] "" XXX
- SG_ COUNTER : 48|4@0+ (1,0) [0|15] "" XXX
- SG_ CHECKSUM : 63|8@0+ (1,0) [0|255] "" XXX
+ SG_ AcceleratorPedalPosition : 47|16@0+ (1,0) [0|65535] "" XXX
 
 BO_ 631 GW_277: 8 XXX
  SG_ ESP_BrakePedalStatus : 7|1@0+ (1,0) [0|1] "" XXX
@@ -131,23 +92,6 @@ BO_ 652 GW_28C: 8 XXX
  SG_ COUNTER : 48|4@0+ (1,0) [0|15] "" XXX
  SG_ CHECKSUM : 63|8@0+ (1,0) [0|255] "" XXX
 
-BO_ 775 GW_307: 64 XXX
- SG_ ACC_SetSpeed : 7|16@0+ (0.0078125,0) [0|250] "" XXX
- SG_ ACC_DistanceLevel : 17|2@0+ (1,0) [0|3] "" XXX
- SG_ ACC_RollingCounter_35E : 48|4@0+ (1,0) [0|15] "" XXX
- SG_ ACC_CRCCheck_35E : 63|8@0+ (1,0) [0|255] "" XXX
- SG_ ACC_RollingCounter_322 : 112|4@0+ (1,0) [0|15] "" XXX
- SG_ ACC_CRCCheck_322 : 127|8@0+ (1,0) [0|255] "" XXX
- SG_ ACC_RollingCounter_344 : 176|4@0+ (1,0) [0|15] "" XXX
- SG_ ACC_CRCCheck_344 : 191|8@0+ (1,0) [0|255] "" XXX
- SG_ ACC_RollingCounter_35F : 240|4@0+ (1,0) [0|15] "" XXX
- SG_ ACC_CRCCheck_35F : 255|8@0+ (1,0) [0|255] "" XXX
-
-CM_ BO_ 368 "EPS shiji niuju (EPS actual torsion bar torque)";
-CM_ SG_ 368 EPS_ActualTorsionBarTorq "fangxiangpan niuju (steering torque)";
-CM_ BO_ 382 "EPS niuju chuanganqi (EPS measured torque sensor)";
-CM_ SG_ 382 EPS_MeasuredTorsionBarTorque "EPS niuju (EPS torque)";
-CM_ SG_ 382 EPS_LatCtrlAvailabilityStatus "LKA keyong zhuangtai (lateral control available)";
 CM_ BO_ 384 "zhuanxiangjiao (steering angle, 0|16@0- yanzheng)";
 CM_ SG_ 384 SAS_SteeringAngle "zhuanxiangjiao du (steering angle deg)";
 CM_ SG_ 384 SAS_SteeringAngleSpeed "zhuanxiangjiao sudu (steering angle rate)";
@@ -155,16 +99,8 @@ CM_ BO_ 391 "chesu xinhao (vehicle speed, GW_187)";
 CM_ SG_ 391 ESP_VehicleSpeed "chesu km/h (vehicle speed)";
 CM_ BO_ 424 "dangwei (gear, 0x1A8 byte1 low nibble: 0x00=N, 0x01-0x07=1-7, 0x09=R, 0x0A=P)";
 CM_ SG_ 424 GearPosition "dangwei";
-CM_ BO_ 442 "zhuanxiangjiao zhiling (steering angle command GW_1BA)";
-CM_ SG_ 442 EPS_AngleCmd "zhuanxiang zhiling (steering angle cmd)";
-CM_ BO_ 580 "ACC jiasudu zhiling (ACC acceleration command GW_244)";
-CM_ SG_ 580 ACC_ACCTargetAcceleration "mubiao jiasudu (target accel m/s2)";
-CM_ SG_ 580 ACC_AccTrqReq "qianyinli xuqiu (torque request)";
-CM_ BO_ 591 "EPS guzhang zhuangtai (EPS fault status)";
-CM_ SG_ 591 EPS_EPSFailed "EPS guzhang biaoji (EPS failed flag)";
 CM_ BO_ 618 "youmen taban (accel pedal GW_26A)";
 CM_ SG_ 618 EMS_AccelSwitch "youmen kaiguan byte0 bit0 (accel switch, 0=release 1=pressed)";
-CM_ SG_ 618 EMS_AccelPedalPosition "youmen weizhi byte5 (accel pedal position, 31=idle 136=full)";
 CM_ BO_ 631 "shache taban (brake pedal GW_277)";
 CM_ BO_ 651 "cheshen kongzhi BCM (body control: doors/turn signals)";
 CM_ SG_ 651 BCM_TurnIndicatorRight "you zhuanxiang deng (right turn signal)";
@@ -175,11 +111,6 @@ CM_ SG_ 652 CruiseCancel "Exit_IACC";
 CM_ SG_ 652 CruiseResume "RES+ anjian";
 CM_ SG_ 652 CruiseSet "SET- anjian";
 CM_ SG_ 652 IaccButton "IACC anjian";
-CM_ BO_ 775 "ACC xunhang xianshi (ACC cruise display GW_307)";
-CM_ SG_ 775 ACC_SetSpeed "she ding sudu (set speed)";
-CM_ BO_ 794 "IACC zhuangtai (IACC/HWA status GW_31A)";
-CM_ SG_ 794 ACC_IACCHWAEnable "IACC jihuo (IACC enable)";
-CM_ SG_ 794 ACC_TargetBasedLateralControl "jihuo LKA (lateral control active)";
 VAL_ 80 SRS_CopilotBuckleSwitchStatus 0 "close" 1 "open";
 VAL_ 80 SRS_DriverBuckleSwitchStatus 0 "close" 1 "open";
 VAL_ 424 GearPosition 0 "N" 1 "D1" 2 "2" 3 "3" 4 "4" 5 "5" 6 "6" 7 "7" 9 "R" 10 "P";
