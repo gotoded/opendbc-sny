@@ -69,7 +69,7 @@ BO_ 520 GW_208: 8 XXX
 
 BO_ 618 GW_26A: 8 XXX
  SG_ EMS_AccelSwitch : 0|1@0+ (1,0) [0|1] "" XXX
- SG_ AcceleratorPedalPosition : 47|16@0+ (1,0) [0|65535] "" XXX
+ SG_ AcceleratorPedalPosition : 47|8@0+ (1,-31) [0|105] "%" XXX
 
 BO_ 631 GW_277: 8 XXX
  SG_ ESP_BrakePedalStatus : 7|1@0+ (1,0) [0|1] "" XXX
@@ -101,6 +101,7 @@ CM_ BO_ 424 "dangwei (gear, 0x1A8 byte1 low nibble: 0x00=N, 0x01-0x07=1-7, 0x09=
 CM_ SG_ 424 GearPosition "dangwei";
 CM_ BO_ 618 "youmen taban (accel pedal GW_26A)";
 CM_ SG_ 618 EMS_AccelSwitch "youmen kaiguan byte0 bit0 (accel switch, 0=release 1=pressed)";
+CM_ SG_ 618 AcceleratorPedalPosition "youmen kaidu % (accel pedal position, byte5 raw: 31=0%, 136=floor by accanjian.csv)";
 CM_ BO_ 631 "shache taban (brake pedal GW_277)";
 CM_ BO_ 651 "cheshen kongzhi BCM (body control: doors/turn signals)";
 CM_ SG_ 651 BCM_TurnIndicatorRight "you zhuanxiang deng (right turn signal)";
