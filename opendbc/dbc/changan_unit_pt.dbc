@@ -92,6 +92,13 @@ BO_ 652 GW_28C: 8 XXX
  SG_ COUNTER : 48|4@0+ (1,0) [0|15] "" XXX
  SG_ CHECKSUM : 63|8@0+ (1,0) [0|255] "" XXX
 
+BO_ 600 GW_258: 8 XXX
+ SG_ GW258_Type M : 4|4@1+ (1,0) [0|15] "" XXX
+ SG_ ESP_BrakePedalDepthLo m0 : 8|8@1+ (1,0) [0|255] "" XXX
+ SG_ ESP_BrakePedalDepthHi m0 : 0|1@1+ (1,0) [0|1] "" XXX
+ SG_ COUNTER m0 : 48|4@0+ (1,0) [0|15] "" XXX
+ SG_ CHECKSUM m0 : 63|8@0+ (1,0) [0|255] "" XXX
+
 CM_ BO_ 384 "zhuanxiangjiao (steering angle, 0|16@0- yanzheng)";
 CM_ SG_ 384 SAS_SteeringAngle "zhuanxiangjiao du (steering angle deg)";
 CM_ SG_ 384 SAS_SteeringAngleSpeed "zhuanxiangjiao sudu (steering angle rate)";
@@ -112,6 +119,10 @@ CM_ SG_ 652 CruiseCancel "Exit_IACC";
 CM_ SG_ 652 CruiseResume "RES+ anjian";
 CM_ SG_ 652 CruiseSet "SET- anjian";
 CM_ SG_ 652 IaccButton "IACC anjian";
+CM_ BO_ 600 "shache taban shendu (brake pedal depth GW_258, muxed subframes)";
+CM_ SG_ 600 GW258_Type "zizhen leixing (subframe type, byte0 high nibble: 0=pedal frame)";
+CM_ SG_ 600 ESP_BrakePedalDepthLo "shache taban shendu di 8 wei (brake pedal depth low byte)";
+CM_ SG_ 600 ESP_BrakePedalDepthHi "shache taban shendu di 9 wei (brake pedal depth bit8, value=Lo|Hi<<8, 500=100%)";
 VAL_ 80 SRS_CopilotBuckleSwitchStatus 0 "close" 1 "open";
 VAL_ 80 SRS_DriverBuckleSwitchStatus 0 "close" 1 "open";
 VAL_ 424 GearPosition 0 "N" 1 "D1" 2 "2" 3 "3" 4 "4" 5 "5" 6 "6" 7 "7" 9 "R" 10 "P";
@@ -125,3 +136,4 @@ VAL_ 652 CruiseCancel 0 "no" 1 "Press";
 VAL_ 652 CruiseResume 0 "no" 1 "reset/+";
 VAL_ 652 CruiseSet 0 "no" 1 "set-";
 VAL_ 652 IaccButton 0 "no" 1 "On_IACC";
+VAL_ 600 GW258_Type 0 "PedalFrame";

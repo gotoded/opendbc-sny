@@ -24,6 +24,7 @@ class CarState(CarStateBase):
     elif self.CP.carFingerprint == CAR.CHANGAN_UNI_T:
       self.shifter_values = None  # UNI-T gear is decoded from GW_1A8.GearPosition in update()
       self.gear_names = {0: "N", 1: "D", 2: "D", 3: "D", 4: "D", 5: "D", 6: "D", 7: "D", 9: "R", 10: "P"}
+      self.brake_depth = 0  # GW_258 pedal-frame depth (raw/500 -> 0..1), held across non-pedal subframes
     self.eps_torque_scale = EPS_SCALE[CP.carFingerprint] / 100.0
     self.cluster_speed_hyst_gap = CV.KPH_TO_MS / 2.0
     self.cluster_min_speed = CV.KPH_TO_MS / 2.0
@@ -100,6 +101,11 @@ class CarState(CarStateBase):
       gear_raw = int(cp.vl["GW_1A8"]["GearPosition"])  # 0=N 1-7=D1-D7 9=R 10=P
       ret.brakePressed = cp.vl["GW_277"]["ESP_BrakePedalStatus"] != 0   # byte0 bit7
       ret.gasPressed = cp.vl["GW_26A"]["EMS_AccelSwitch"] != 0    # byte0 bit0
+      gw258 = cp.vl["GW_258"]
+      if gw258["GW258_Type"] == 0:  # byte0 high nibble=0 is the pedal subframe; other subframes decode nothing
+        # 9-bit raw depth: byte1 (Lo) + byte0 bit0 (Hi) as bit8, 500 = 100%
+        self.brake_depth = (gw258["ESP_BrakePedalDepthLo"] | (gw258["ESP_BrakePedalDepthHi"] << 8)) / 500.0
+      ret.brake = self.brake_depth
       self.steeringPressedMin = 1
       self.steeringPressedMax = 6
       ret.leftBlindspot = False
@@ -226,7 +232,7 @@ class CarState(CarStateBase):
       ("GW_31A", 0),
     ]
     if CP.carFingerprint == CAR.CHANGAN_UNI_T:
-      pt_messages += [("GW_1A8", 0), ("GW_277", 0), ("GW_26A", 0), ("GW_50", 0)]
+      pt_messages += [("GW_1A8", 0), ("GW_277", 0), ("GW_26A", 0), ("GW_50", 0), ("GW_258", 0)]
     else:
       pt_messages += [("GW_338", 0), ("GW_17A", 0), ("GW_1C6", 0), ("GW_50", 0), ("GW_196", 0), ("GW_1A6", 0)]
     cam_messages = [
