@@ -56,16 +56,20 @@ BO_ 424 GW_1A8: 8 XXX
  SG_ CHECKSUM : 63|8@0+ (1,0) [0|255] "" XXX
 
 BO_ 518 GW_206: 8 XXX
- SG_ WheelSpeed_FR : 3|12@0+ (0.05,0) [0|204.75] "km/h" XXX
+ SG_ WheelSpeed_FR : 8|8@1+ (1,0) [0|255] "km/h" XXX
  SG_ WS_Standstill_FR : 6|1@0+ (1,0) [0|1] "" XXX
- SG_ WheelSpeed_FL : 19|12@0+ (0.05,0) [0|204.75] "km/h" XXX
+ SG_ WheelSpeed_FL : 24|8@1+ (1,0) [0|255] "km/h" XXX
  SG_ WS_Standstill_FL : 22|1@0+ (1,0) [0|1] "" XXX
+ SG_ COUNTER : 48|4@0+ (1,0) [0|15] "" XXX
+ SG_ CHECKSUM : 63|8@0+ (1,0) [0|255] "" XXX
 
 BO_ 520 GW_208: 8 XXX
- SG_ WheelSpeed_RR : 3|12@0+ (0.05,0) [0|204.75] "km/h" XXX
+ SG_ WheelSpeed_RR : 8|8@1+ (1,0) [0|255] "km/h" XXX
  SG_ WS_Standstill_RR : 6|1@0+ (1,0) [0|1] "" XXX
- SG_ WheelSpeed_RL : 19|12@0+ (0.05,0) [0|204.75] "km/h" XXX
+ SG_ WheelSpeed_RL : 24|8@1+ (1,0) [0|255] "km/h" XXX
  SG_ WS_Standstill_RL : 22|1@0+ (1,0) [0|1] "" XXX
+ SG_ COUNTER : 48|4@0+ (1,0) [0|15] "" XXX
+ SG_ CHECKSUM : 63|8@0+ (1,0) [0|255] "" XXX
 
 BO_ 618 GW_26A: 8 XXX
  SG_ EMS_AccelSwitch : 0|1@0+ (1,0) [0|1] "" XXX
