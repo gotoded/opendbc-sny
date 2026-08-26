@@ -166,6 +166,24 @@ BO_ 591 GW_24F: 8 XXX
  SG_ COUNTER : 51|4@0+ (1,0) [0|15] "" XXX
  SG_ CHECKSUM : 63|8@0+ (1,0) [0|255] "" XXX
 
+BO_ 392 GW_188: 8 XXX
+ SG_ ESP_StatusByte : 0|8@0+ (1,0) [0|255] "" XXX
+
+BO_ 407 GW_197: 8 XXX
+ SG_ ESP_EspDisabled : 7|1@0+ (1,0) [0|1] "" XXX
+ SG_ ESP_EspActive : 2|1@0+ (1,0) [0|1] "" XXX
+
+BO_ 585 GW_249: 8 XXX
+ SG_ BCM_ParkingBrakeStatus : 3|1@0+ (1,0) [0|1] "" XXX
+ SG_ BCM_BrakeHoldActive : 2|1@0+ (1,0) [0|1] "" XXX
+ SG_ COUNTER : 48|4@0+ (1,0) [0|15] "" XXX
+ SG_ CHECKSUM : 63|8@0+ (1,0) [0|255] "" XXX
+
+BO_ 664 GW_298: 8 XXX
+ SG_ BCM_ParkingBrakeStatus2 : 38|1@0+ (1,0) [0|1] "" XXX
+ SG_ COUNTER : 48|4@0+ (1,0) [0|15] "" XXX
+ SG_ CHECKSUM : 63|8@0+ (1,0) [0|255] "" XXX
+
 CM_ BO_ 384 "zhuanxiangjiao (steering angle, 0|16@0- yanzheng)";
 CM_ SG_ 384 SAS_SteeringAngle "zhuanxiangjiao du (steering angle deg)";
 CM_ SG_ 384 SAS_SteeringAngleSpeed "zhuanxiangjiao sudu (steering angle rate)";
@@ -215,6 +233,16 @@ CM_ SG_ 382 EPS_LatCtrlAvailabilityStatus "CESHI hengxiang kongzhi keji zhuangta
 CM_ BO_ 591 "EPS guzhuang (EPS fault GW_24F, 8 bytes)";
 CM_ SG_ 591 EPS_EPSFailed "EPS guzhuang (EPS failed, byte0 bit2, WUDINGYI: byte0 shi fuzhi xinhao jingzhi=1 kuaizhuan=43, zhengchang kuaiman zhuanxiang shi wuchufa 2%)";
 CM_ SG_ 591 steeringTorqueEps_maybe "EPS niuju yubei (EPS torque maybe, byte2 youfuhao 0.1, 01.csv 127 wei zhongxin, yu 0x17E byte0 danziangliang)";
+CM_ BO_ 392 "ESP xinxi (ESP info GW_188, byte0 zhuangtai, dai shiche yanzheng)";
+CM_ SG_ 392 ESP_StatusByte "ESP zhuangtai zhi (ESP status raw byte0, dai yanzheng: 01.csv zhi {0x00,0x01,0x20,0x60}, yubei espActive/espDisabled rongyu)";
+CM_ BO_ 407 "ESP zhuangtai (ESP state GW_197, zhong zhiyindu, dai shiche yanzheng)";
+CM_ SG_ 407 ESP_EspDisabled "ESP guanbi (ESP disabled, byte0 bit7, 01.csv qidong t=0s shi byte0=0xC0, zhihou zhuan 0x01)";
+CM_ SG_ 407 ESP_EspActive "ESP ganyu (ESP active intervention, byte0 bit2, 0x01->0x05 fanzhuan)";
+CM_ BO_ 585 "BCM zhuangtai (BCM state GW_249, zhong zhiyindu, dai shiche yanzheng)";
+CM_ SG_ 585 BCM_ParkingBrakeStatus "zhuchedong (parking brake, byte0 bit3, 01.csv t=199s hou wei 0x08)";
+CM_ SG_ 585 BCM_BrakeHoldActive "zidong zhuche (auto hold, byte0 bit2, oufa 0x04)";
+CM_ BO_ 664 "BCM zhuangtai 2 (BCM state GW_298, rongyu, dai shiche yanzheng)";
+CM_ SG_ 664 BCM_ParkingBrakeStatus2 "zhuchedong rongyu (parking brake redundant, byte4 bit6, 0x08->0x48 fanzhuan)";
 VAL_ 80 SRS_CopilotBuckleSwitchStatus 0 "close" 1 "open";
 VAL_ 80 SRS_DriverBuckleSwitchStatus 0 "close" 1 "open";
 VAL_ 424 GearPosition 0 "N" 1 "D1" 2 "2" 3 "3" 4 "4" 5 "5" 6 "6" 7 "7" 9 "R" 10 "P";
@@ -240,3 +268,8 @@ VAL_ 794 ACC_TargetBasedLateralControl 0 "no" 1 "yes";
 VAL_ 794 ACC_IACCHWAMode 0 "off" 7 "fault";
 VAL_ 382 EPS_LatCtrlAvailabilityStatus 0 "available" 1 "unavailable";
 VAL_ 591 EPS_EPSFailed 0 "no" 1 "yes";
+VAL_ 407 ESP_EspDisabled 0 "enabled" 1 "disabled";
+VAL_ 407 ESP_EspActive 0 "inactive" 1 "active";
+VAL_ 585 BCM_ParkingBrakeStatus 0 "release" 1 "applied";
+VAL_ 585 BCM_BrakeHoldActive 0 "inactive" 1 "active";
+VAL_ 664 BCM_ParkingBrakeStatus2 0 "release" 1 "applied";
