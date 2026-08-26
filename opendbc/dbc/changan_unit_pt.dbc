@@ -99,6 +99,52 @@ BO_ 600 GW_258: 8 XXX
  SG_ COUNTER m0 : 48|4@0+ (1,0) [0|15] "" XXX
  SG_ CHECKSUM m0 : 63|8@0+ (1,0) [0|255] "" XXX
 
+BO_ 442 GW_1BA: 32 XXX
+ SG_ ACC_MotorTorqueMinLimitRequest : 7|8@0+ (1,0) [0|255] "" XXX
+ SG_ ACC_MotorTorqueMaxLimitRequest : 15|8@0+ (1,0) [0|255] "" XXX
+ SG_ EPS_LatCtrlActive : 16|1@0+ (1,0) [0|1] "" XXX
+ SG_ EPS_AngleCmd : 31|16@0- (0.1,0) [0|65535] "" XXX
+ SG_ ACC_RollingCounter_1BA : 51|4@0+ (1,0) [0|15] "" XXX
+ SG_ ACC_CRCCheck_1BA : 63|8@0+ (1,0) [0|255] "" XXX
+
+BO_ 580 GW_244: 32 XXX
+ SG_ ACC_ACCTargetAcceleration : 7|16@0- (0.001,-25.6) [-10|10] "m/s2" XXX
+ SG_ ACC_AEBCtrlType : 34|3@0+ (1,0) [0|7] "" XXX
+ SG_ ACC_FCWPreWarning : 35|1@0+ (1,0) [0|1] "" XXX
+ SG_ ACC_AccTrqReqActive : 44|1@0+ (1,0) [0|1] "" XXX
+ SG_ ACC_RollingCounter_24E : 51|4@0+ (1,0) [0|15] "" XXX
+ SG_ ACC_ACCMode : 54|3@0+ (1,0) [0|7] "" XXX
+ SG_ ACC_ACCReq : 55|1@0+ (1,0) [0|1] "" XXX
+ SG_ ACC_CRCCheck_24E : 63|8@0+ (1,0) [0|255] "" XXX
+ SG_ ACC_AccTrqReq : 103|16@0+ (1,0) [-32|32] "" XXX
+ SG_ ACC_RollingCounter_25E : 115|4@0+ (1,0) [0|15] "" XXX
+ SG_ ACC_CRCCheck_25E : 127|8@0+ (1,0) [0|255] "" XXX
+
+BO_ 775 GW_307: 64 XXX
+ SG_ ACC_SetSpeed : 7|16@0+ (0.0078125,0) [0|250] "km/h" XXX
+ SG_ ACC_DistanceLevel : 17|2@0+ (1,0) [0|3] "" XXX
+ SG_ ACC_RollingCounter_35E : 51|4@0+ (1,0) [0|15] "" XXX
+ SG_ ACC_CRCCheck_35E : 63|8@0+ (1,0) [0|255] "" XXX
+ SG_ ACC_RollingCounter_322 : 115|4@0+ (1,0) [0|15] "" XXX
+ SG_ ACC_CRCCheck_322 : 127|8@0+ (1,0) [0|255] "" XXX
+ SG_ ACC_RollingCounter_344 : 179|4@0+ (1,0) [0|15] "" XXX
+ SG_ ACC_CRCCheck_344 : 191|8@0+ (1,0) [0|255] "" XXX
+ SG_ ACC_RollingCounter_35F : 243|4@0+ (1,0) [0|15] "" XXX
+ SG_ ACC_CRCCheck_35F : 255|8@0+ (1,0) [0|255] "" XXX
+
+BO_ 794 GW_31A: 64 XXX
+ SG_ ACC_RollingCounter_36D : 51|4@0+ (1,0) [0|15] "" XXX
+ SG_ ACC_CRCCheck_36D : 63|8@0+ (1,0) [0|255] "" XXX
+ SG_ ACC_IACCHWAEnable : 68|1@0+ (1,0) [0|1] "" XXX
+ SG_ ACC_TargetBasedLateralControl : 96|1@0+ (1,0) [0|1] "" XXX
+ SG_ ACC_RollingCounter_30A : 115|4@0+ (1,0) [0|15] "" XXX
+ SG_ ACC_CRCCheck_30A : 127|8@0+ (1,0) [0|255] "" XXX
+ SG_ ACC_IACCHWAMode : 135|3@0+ (1,0) [0|7] "" XXX
+ SG_ ACC_RollingCounter_30D : 179|4@0+ (1,0) [0|15] "" XXX
+ SG_ ACC_CRCCheck_30D : 191|8@0+ (1,0) [0|255] "" XXX
+ SG_ ACC_RollingCounter_367 : 243|4@0+ (1,0) [0|15] "" XXX
+ SG_ ACC_CRCCheck_367 : 255|8@0+ (1,0) [0|255] "" XXX
+
 CM_ BO_ 384 "zhuanxiangjiao (steering angle, 0|16@0- yanzheng)";
 CM_ SG_ 384 SAS_SteeringAngle "zhuanxiangjiao du (steering angle deg)";
 CM_ SG_ 384 SAS_SteeringAngleSpeed "zhuanxiangjiao sudu (steering angle rate)";
@@ -123,6 +169,23 @@ CM_ BO_ 600 "shache taban shendu (brake pedal depth GW_258, muxed subframes)";
 CM_ SG_ 600 GW258_Type "zizhen leixing (subframe type, byte0 high nibble: 0=pedal frame)";
 CM_ SG_ 600 ESP_BrakePedalDepthLo "shache taban shendu di 8 wei (brake pedal depth low byte)";
 CM_ SG_ 600 ESP_BrakePedalDepthHi "shache taban shendu di 9 wei (brake pedal depth bit8, value=Lo|Hi<<8, 500=100%)";
+CM_ BO_ 442 "ADAS kongzhi mingling (ACC control command GW_1BA, 32 bytes)";
+CM_ SG_ 442 EPS_LatCtrlActive "CESHI kongzhi jihuo (EPS lateral control active flag)";
+CM_ SG_ 442 EPS_AngleCmd "CESHI jiaodu mingling (EPS angle command, 0.1 deg)";
+CM_ BO_ 580 "ACC zhuangtai (ACC status GW_244, 32 bytes)";
+CM_ SG_ 580 ACC_ACCTargetAcceleration "ACC mubiao jiasudu (ACC target acceleration m/s2, raw*0.001-25.6)";
+CM_ SG_ 580 ACC_AEBCtrlType "AEB kongzhi leixing (AEB control type, 0=none)";
+CM_ SG_ 580 ACC_FCWPreWarning "QZDY yujing (FCW pre-warning, 0=no 1=yes)";
+CM_ SG_ 580 ACC_ACCMode "ACC moshi (ACC mode 54|3@0+, 2=standby 3=active 7=fault)";
+CM_ SG_ 580 ACC_ACCReq "ACC qingqiu (ACC request, byte6 bit7)";
+CM_ SG_ 580 ACC_AccTrqReq "ACC niuju qingqiu (ACC torque request, non-zero=active)";
+CM_ BO_ 775 "ACC shezhi (ACC set speed/distance GW_307, 64 bytes, 4x16-byte sub-frames)";
+CM_ SG_ 775 ACC_SetSpeed "ACC shezhi chesu (ACC set speed km/h, raw*0.0078125, verified 80.25/85.25/69.25)";
+CM_ SG_ 775 ACC_DistanceLevel "ACC cheju dengji (ACC distance level, 0-3)";
+CM_ BO_ 794 "IACC zhuangtai (IACC HWA status GW_31A, 64 bytes, 4x16-byte sub-frames)";
+CM_ SG_ 794 ACC_IACCHWAEnable "IACC HWA keji (IACC HWA available, byte8 bit4, verified byte8=0x71->1)";
+CM_ SG_ 794 ACC_IACCHWAMode "IACC HWA moshi (IACC HWA mode 135|3@0+, 7=fault)";
+CM_ SG_ 794 ACC_TargetBasedLateralControl "HCEngji mubiao hengxiang kongzhi (HWA target-based lateral control, byte12 bit0)";
 VAL_ 80 SRS_CopilotBuckleSwitchStatus 0 "close" 1 "open";
 VAL_ 80 SRS_DriverBuckleSwitchStatus 0 "close" 1 "open";
 VAL_ 424 GearPosition 0 "N" 1 "D1" 2 "2" 3 "3" 4 "4" 5 "5" 6 "6" 7 "7" 9 "R" 10 "P";
@@ -137,3 +200,12 @@ VAL_ 652 CruiseResume 0 "no" 1 "reset/+";
 VAL_ 652 CruiseSet 0 "no" 1 "set-";
 VAL_ 652 IaccButton 0 "no" 1 "On_IACC";
 VAL_ 600 GW258_Type 0 "PedalFrame";
+VAL_ 442 EPS_LatCtrlActive 0 "inactive" 1 "active";
+VAL_ 580 ACC_AEBCtrlType 0 "none" 1 "active";
+VAL_ 580 ACC_FCWPreWarning 0 "no" 1 "yes";
+VAL_ 580 ACC_ACCMode 0 "off" 1 "inactive" 2 "standby" 3 "active" 7 "fault";
+VAL_ 580 ACC_ACCReq 0 "no" 1 "yes";
+VAL_ 580 ACC_AccTrqReqActive 0 "no" 1 "yes";
+VAL_ 794 ACC_IACCHWAEnable 0 "no" 1 "yes";
+VAL_ 794 ACC_TargetBasedLateralControl 0 "no" 1 "yes";
+VAL_ 794 ACC_IACCHWAMode 0 "off" 7 "fault";
