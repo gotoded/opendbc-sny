@@ -145,6 +145,23 @@ BO_ 794 GW_31A: 64 XXX
  SG_ ACC_RollingCounter_367 : 243|4@0+ (1,0) [0|15] "" XXX
  SG_ ACC_CRCCheck_367 : 255|8@0+ (1,0) [0|255] "" XXX
 
+BO_ 368 GW_170: 8 ESP
+ SG_ EPS_ActualTorsionBarTorq : 23|16@0+ (1,-5533) [0|65535] "" XXX
+ SG_ COUNTER : 51|4@0+ (1,0) [0|15] "" XXX
+ SG_ CHECKSUM : 63|8@0+ (1,0) [0|255] "" XXX
+
+BO_ 382 GW_17E: 8 XXX
+ SG_ EPS_MeasuredTorsionBarTorque : 0|8@0+ (1,-126) [-126|129] "Nm" XXX
+ SG_ EPS_RollingCounter_17E : 51|4@0+ (1,0) [0|15] "" XXX
+ SG_ EPS_LatCtrlAvailabilityStatus : 55|2@0+ (1,0) [0|3] "" XXX
+ SG_ EPS_CRCCheck_17E : 63|8@0+ (1,0) [0|255] "" XXX
+
+BO_ 591 GW_24F: 8 XXX
+ SG_ EPS_EPSFailed : 2|1@0+ (1,0) [0|1] "" XXX
+ SG_ steeringTorqueEps_maybe : 23|8@0- (0.1,0) [0|255] "" XXX
+ SG_ COUNTER : 51|4@0+ (1,0) [0|15] "" XXX
+ SG_ CHECKSUM : 63|8@0+ (1,0) [0|255] "" XXX
+
 CM_ BO_ 384 "zhuanxiangjiao (steering angle, 0|16@0- yanzheng)";
 CM_ SG_ 384 SAS_SteeringAngle "zhuanxiangjiao du (steering angle deg)";
 CM_ SG_ 384 SAS_SteeringAngleSpeed "zhuanxiangjiao sudu (steering angle rate)";
@@ -186,6 +203,14 @@ CM_ BO_ 794 "IACC zhuangtai (IACC HWA status GW_31A, 64 bytes, 4x16-byte sub-fra
 CM_ SG_ 794 ACC_IACCHWAEnable "IACC HWA keji (IACC HWA available, byte8 bit4, verified byte8=0x71->1)";
 CM_ SG_ 794 ACC_IACCHWAMode "IACC HWA moshi (IACC HWA mode 135|3@0+, 7=fault)";
 CM_ SG_ 794 ACC_TargetBasedLateralControl "HCEngji mubiao hengxiang kongzhi (HWA target-based lateral control, byte12 bit0)";
+CM_ BO_ 368 "EPS shiji niuju (EPS actual torsion bar torque GW_170, byte2-3, dai yanzheng)";
+CM_ SG_ 368 EPS_ActualTorsionBarTorq "EPS shiji niuju (actual torsion bar torque, 23|16@0+ (1,-5533), dai yanzheng: 01.csv zhong byte2-3 bu lianxu, byte3 zhiyou 22 distinct zhi, kending yichang)";
+CM_ BO_ 382 "EPS celiang niuju (EPS measured torsion bar torque GW_17E, byte0)";
+CM_ SG_ 382 EPS_MeasuredTorsionBarTorque "jiashiyuan niuju (driver torque Nm, byte0 wufuhao + offset -126, 01.csv yanzheng: zhixing fenbu 0x7E=126 fengzhi, fanwei 81~220 -> -45~+94 Nm, jiu dingyi 7|12@0- cuowu)";
+CM_ SG_ 382 EPS_LatCtrlAvailabilityStatus "CESHI hengxiang kongzhi keji zhuangtai (EPS lat ctrl availability, byte6 bits7,6, 01.csv zhiqu {0,1}, 0=83% 1=17%)";
+CM_ BO_ 591 "EPS guzhuang (EPS fault GW_24F, 8 bytes)";
+CM_ SG_ 591 EPS_EPSFailed "EPS guzhuang (EPS failed, byte0 bit2, WUDINGYI: byte0 shi fuzhi xinhao jingzhi=1 kuaizhuan=43, zhengchang kuaiman zhuanxiang shi wuchufa 2%)";
+CM_ SG_ 591 steeringTorqueEps_maybe "EPS niuju yubei (EPS torque maybe, byte2 youfuhao 0.1, 01.csv 127 wei zhongxin, yu 0x17E byte0 danziangliang)";
 VAL_ 80 SRS_CopilotBuckleSwitchStatus 0 "close" 1 "open";
 VAL_ 80 SRS_DriverBuckleSwitchStatus 0 "close" 1 "open";
 VAL_ 424 GearPosition 0 "N" 1 "D1" 2 "2" 3 "3" 4 "4" 5 "5" 6 "6" 7 "7" 9 "R" 10 "P";
@@ -209,3 +234,5 @@ VAL_ 580 ACC_AccTrqReqActive 0 "no" 1 "yes";
 VAL_ 794 ACC_IACCHWAEnable 0 "no" 1 "yes";
 VAL_ 794 ACC_TargetBasedLateralControl 0 "no" 1 "yes";
 VAL_ 794 ACC_IACCHWAMode 0 "off" 7 "fault";
+VAL_ 382 EPS_LatCtrlAvailabilityStatus 0 "available" 1 "unavailable";
+VAL_ 591 EPS_EPSFailed 0 "no" 1 "yes";
