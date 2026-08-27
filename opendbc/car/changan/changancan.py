@@ -43,8 +43,9 @@ def create_244_command_a05(packer, accel, counter, longActive, accTrq):
 def create_244_command(packer, msg: dict, accel, counter, longActive, accTrq, vEgoRaw, is_unit: bool):
   values = msg.copy()
   if is_unit:
-    # UNIT 2022 DBC: ACC_ACCMode=8|8@0+, ACC_AccTrqReq=103|16@1+ (unsigned).
-    # Keep camera-relayed ACC_ACCMode; only update accel/counter/torque.
+    # UNIT 2022 DBC (changan_unit_pt.dbc): ACC_ACCMode=54|3@0+,
+    # ACC_AccTrqReq=103|16@0+ (Motorola, unsigned).  Keep camera-relayed
+    # ACC_ACCMode; only update accel/counter/torque.
     values.update(
       {
         "ACC_ACCTargetAcceleration": accel,
@@ -102,51 +103,20 @@ def create_244_command_idd(packer, msg: dict, accel, counter, longActive, accTrq
   return packer.make_can_msg("GW_244", 0, values)
 
 
-def create_1BA_command(packer, msg: dict, angle, latCtrlActive, counter, is_unit: bool):
-  if is_unit:
-    # UNIT 2022 (verified against 01/02.csv captures):
-    #   byte0-1: fixed header 0xB5 0x29 (relayed unchanged from camera)
-    #   byte2-4: EPS_AngleCmd, Motorola 24-bit big-endian
-    #            value = 0x5DC200 + int(angle_deg*10) << 4
-    #   byte6:   rolling counter in low nibble
-    #   byte7:   CRC-8 (init=0x6C) over bytes 0..6
-    # latCtrlActive is not mappable to a known bit yet -> keep camera value.
-    values = {
-      s: msg.get(s, 0)
-      for s in [
-        "UNIT_1BA_Hdr0",
-        "UNIT_1BA_Hdr1",
-        "ACC_CRCCheck_1BA",
-        "ACC_RollingCounter_1BA",
-        "EPS_AngleCmd",
-      ]
+def create_1BA_command(packer, msg: dict, angle, latCtrlActive, counter):
+  # Both changan_unit_pt.dbc (UNI-T 2022) and changan_pt.dbc (Z6 / Z6 iDD)
+  # define EPS_AngleCmd as a 16-bit Motorola signal with scale 0.1 deg, so the
+  # same encoding works for all platforms: relay the camera frame verbatim and
+  # only update the angle command, lateral-control flag, rolling counter, then
+  # recompute the CRC-8 (init=0x6C) over bytes 0..6.
+  values = msg.copy()
+  values.update(
+    {
+      "EPS_AngleCmd": angle,
+      "EPS_LatCtrlActive": latCtrlActive,
+      "ACC_RollingCounter_1BA": counter,
     }
-    values.update(
-      {
-        "EPS_AngleCmd": 0x5DC200 + (int(round(angle * 10.0)) << 4),
-        "ACC_RollingCounter_1BA": counter,
-      }
-    )
-  else:
-    # Z6 / Z6 iDD original encoding (changan_pt.dbc): 16-bit little-endian
-    values = {
-      s: msg.get(s, 0)
-      for s in [
-        "ACC_CRCCheck_1BA",
-        "ACC_RollingCounter_1BA",
-        "EPS_LatCtrlActive",
-        "EPS_AngleCmd",
-        "ACC_MotorTorqueMinLimitRequest",
-        "ACC_MotorTorqueMaxLimitRequest",
-      ]
-    }
-    values.update(
-      {
-        "EPS_AngleCmd": angle,
-        "EPS_LatCtrlActive": latCtrlActive,
-        "ACC_RollingCounter_1BA": counter,
-      }
-    )
+  )
   dat = packer.make_can_msg("GW_1BA", 0, values)[1]
 
   values["ACC_CRCCheck_1BA"] = can_crc.crc_calculate_crc8(dat[:7])

@@ -77,10 +77,10 @@ class CarController(CarControllerBase):
         apply_angle, self.last_angle, CS.out.vEgoRaw, CS.out.steeringAngleDeg + CS.out.steeringAngleOffsetDeg, CC.latActive, self.params.ANGLE_LIMITS
       )
 
-      can_sends.append(changancan.create_1BA_command(self.packer, CS.sigs1ba, apply_angle, 1, self.counter_1ba, is_unit))
+      can_sends.append(changancan.create_1BA_command(self.packer, CS.sigs1ba, apply_angle, 1, self.counter_1ba))
     else:
       apply_angle = CS.out.steeringAngleDeg
-      can_sends.append(changancan.create_1BA_command(self.packer, CS.sigs1ba, apply_angle, 0, self.counter_1ba, is_unit))
+      can_sends.append(changancan.create_1BA_command(self.packer, CS.sigs1ba, apply_angle, 0, self.counter_1ba))
 
     self.last_angle = apply_angle
 
