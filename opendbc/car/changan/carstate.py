@@ -139,7 +139,7 @@ class CarState(CarStateBase):
         self.steeringPressed = True
     ret.steeringPressed = self.steeringPressed
 
-    ret.steerFaultTemporary = cp.vl["GW_24F"]["EPS_EPSFailed"] != 0 or cp.vl["GW_17E"]["EPS_LatCtrlAvailabilityStatus"] == 2
+    ret.steerFaultTemporary = cp.vl["GW_24F"]["EPS_EPSFailed"] != 0 or cp.vl["GW_17E"]["EPS_LatCtrlAvailabilityStatus"] == 1
 
     # GW_28C signal names differ per PT DBC: UNI-T uses changan_unit_pt.dbc
     # (CruiseButton/CruiseCancel/CruiseResume/CruiseSet/IaccButton), while
