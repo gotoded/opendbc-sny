@@ -1,6 +1,6 @@
 <div align="center" style="text-align: center;">
 
-<h1>opendbc</h1>
+<h1>Opendbc</h1>
 <p>
   <b>opendbc 是一个用于控制汽车的 Python API。</b>
   <br>
