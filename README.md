@@ -198,6 +198,6 @@ opendbc 安全固件是为与 [openpilot](https://github.com/commaai/openpilot) 
 * [longitudinal maneuvers](https://github.com/commaai/openpilot/tree/master/tools/longitudinal_maneuvers)：用于评估和调优纵向控制的工具
 * [opendbc data](https://commaai.github.io/opendbc-data/)：纵向机动评估的仓库
 
-## 加入我们 — [comma.ai/jobs](https://comma.ai/jobs)
+## 加入我们 —- [comma.ai/jobs](https://comma.ai/jobs)
 
 comma 正在招聘工程师来开发 opendbc 和 [openpilot](https://github.com/commaai/openpilot)。我们喜欢招聘贡献者。
