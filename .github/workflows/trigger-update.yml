@@ -3,11 +3,12 @@ name: Trigger Main Repo Update
 on:
   push:
     branches:
-      - master   # 当 master 分支有推送时触发
+      - master
 
 jobs:
   trigger:
     runs-on: ubuntu-latest
+
     steps:
       - name: Send repository_dispatch to main repo
         run: |
