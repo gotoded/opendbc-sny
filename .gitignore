@@ -13,6 +13,7 @@
 .hypothesis
 *.egg-info/
 *.html
+vehicle_fingerprint.json
 *.gcda
 *.gcno
 
