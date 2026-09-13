@@ -106,7 +106,7 @@ BO_ 580 GW_244: 32 XXX
  SG_ ACC_ACCMode : 54|3@0+ (1,0) [0|7] "" XXX
  SG_ ACC_ACCReq : 55|1@0+ (1,0) [0|1] "" XXX
  SG_ ACC_CRCCheck_24E : 63|8@0+ (1,0) [0|255] "" XXX
- SG_ ACC_AccTrqReq : 103|16@0- (0.001,0) [-32|32] "Nm" XXX
+ SG_ ACC_AccTrqReq : 103|16@0+ (1,0) [-32|32] "Nm" XXX
  SG_ ACC_RollingCounter_25E : 115|4@0+ (1,0) [0|15] "" XXX
  SG_ ACC_CRCCheck_25E : 127|8@0+ (1,0) [0|255] "" XXX
 
