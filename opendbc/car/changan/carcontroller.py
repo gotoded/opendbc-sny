@@ -13,8 +13,8 @@ VisualAlert = structs.CarControl.HUDControl.VisualAlert
 
 
 class CarController(CarControllerBase):
-  def __init__(self, dbc_names, CP):
-    super().__init__(dbc_names, CP)
+  def __init__(self, dbc_names, CP, CP_SP):
+    super().__init__(dbc_names, CP, CP_SP)
     self.params = CarControllerParams(self.CP)
     self.last_angle = 0
     self.alert_active = False
