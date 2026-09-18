@@ -217,7 +217,7 @@ class CarState(CarStateBase):
     return ret
 
   @staticmethod
-  def get_can_parsers(CP):
+  def get_can_parsers(CP, CP_SP):
     pt_messages = [
       ("GW_28B", 0),
       ("GW_187", 0),
