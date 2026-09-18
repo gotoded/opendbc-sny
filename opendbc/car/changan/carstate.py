@@ -14,7 +14,7 @@ PERM_STEER_FAULTS = (3, 17)
 
 class CarState(CarStateBase):
   def __init__(self, CP, CP_SP):
-    super().__init__(CP)
+    super().__init__(CP, CP_SP)
     can_define = CANDefine(DBC[CP.carFingerprint][Bus.pt])
 
     if self.CP.carFingerprint == CAR.CHANGAN_Z6:
