@@ -82,18 +82,14 @@ BO_ 442 GW_1BA: 32 XXX
  SG_ ACC_CRCCheck_1BA : 63|8@0+ (1,0) [0|255] "" XXX
 
 BO_ 518 GW_206: 8 XXX
- SG_ WS_Standstill_FR : 6|1@0+ (1,0) [0|1] "" XXX
- SG_ WheelSpeed_FR : 8|8@1+ (0.46,0) [0|255] "km/h" XXX
- SG_ WS_Standstill_FL : 22|1@0+ (1,0) [0|1] "" XXX
- SG_ WheelSpeed_FL : 24|8@1+ (0.46,0) [0|255] "km/h" XXX
+ SG_ WheelSpeed_FR : 7|16@0+ (0.06,0) [0|255] "km/h" XXX
+ SG_ WheelSpeed_FL : 23|16@0+ (0.06,0) [0|255] "km/h" XXX
  SG_ COUNTER : 51|4@0+ (1,0) [0|15] "" XXX
  SG_ CHECKSUM : 63|8@0+ (1,0) [0|255] "" XXX
 
 BO_ 520 GW_208: 8 XXX
- SG_ WS_Standstill_RR : 6|1@0+ (1,0) [0|1] "" XXX
- SG_ WheelSpeed_RR : 8|8@1+ (0.46,0) [0|255] "km/h" XXX
- SG_ WS_Standstill_RL : 22|1@0+ (1,0) [0|1] "" XXX
- SG_ WheelSpeed_RL : 24|8@1+ (0.46,0) [0|255] "km/h" XXX
+ SG_ WheelSpeed_RR : 7|16@0+ (0.06,0) [0|255] "km/h" XXX
+ SG_ WheelSpeed_RL : 23|16@0+ (0.06,0) [0|255] "km/h" XXX
  SG_ COUNTER : 51|4@0+ (1,0) [0|15] "" XXX
  SG_ CHECKSUM : 63|8@0+ (1,0) [0|255] "" XXX
 
@@ -207,6 +203,10 @@ CM_ SG_ 424 GearPosition "dangwei";
 CM_ BO_ 442 "ADAS kongzhi mingling (ACC control command GW_1BA, 32 bytes)";
 CM_ SG_ 442 EPS_LatCtrlActive "CESHI kongzhi jihuo (EPS lateral control active flag)";
 CM_ SG_ 442 EPS_AngleCmd "CESHI jiaodu mingling (EPS angle command, 0.1 deg)";
+CM_ SG_ 518 WheelSpeed_FR "Special raw value 0x4000 = standstill (while 0x187 speed=0x0000); do not decode as vehicle speed.";
+CM_ SG_ 518 WheelSpeed_FL "Special raw value 0x4000 = standstill (while 0x187 speed=0x0000); do not decode as vehicle speed.";
+CM_ SG_ 520 WheelSpeed_RR "Special raw value 0x4000 = standstill (while 0x187 speed=0x0000); do not decode as vehicle speed.";
+CM_ SG_ 520 WheelSpeed_RL "Special raw value 0x4000 = standstill (while 0x187 speed=0x0000); do not decode as vehicle speed.";
 CM_ BO_ 580 "ACC zhuangtai (ACC status GW_244, 32 bytes)";
 CM_ SG_ 580 ACC_ACCTargetAcceleration "ACC mubiao jiasudu (ACC target acceleration m/s2, raw*0.001-25.6)";
 CM_ SG_ 580 ACC_AEBCtrlType "AEB kongzhi leixing (AEB control type, 0=none)";
