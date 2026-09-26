@@ -104,7 +104,8 @@ class CarState(CarStateBase):
       gw258 = cp.vl["GW_258"]
       if gw258["GW258_Type"] == 0:  # byte0 high nibble=0 is the pedal subframe; other subframes decode nothing
         # 9-bit raw depth: byte1 (Lo) + byte0 bit0 (Hi) as bit8, 500 = 100%
-        self.brake_depth = (gw258["ESP_BrakePedalDepthLo"] | (gw258["ESP_BrakePedalDepthHi"] << 8)) / 500.0
+        # CANParser returns floats, so cast to int before the bitwise combine
+        self.brake_depth = (int(gw258["ESP_BrakePedalDepthLo"]) | (int(gw258["ESP_BrakePedalDepthHi"]) << 8)) / 500.0
       ret.brake = self.brake_depth
       self.steeringPressedMin = 1
       self.steeringPressedMax = 6
