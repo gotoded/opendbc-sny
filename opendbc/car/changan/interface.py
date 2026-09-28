@@ -4,6 +4,7 @@ from opendbc.car.changan.values import CAR, CarControllerParams, ChanganSafetyFl
 from opendbc.car.changan.carstate import CarState
 from opendbc.car.changan.carcontroller import CarController
 from opendbc.car.changan.radar_interface import RadarInterface
+from opendbc.car.carlog import carlog
 
 
 SteerControlType = structs.CarParams.SteerControlType
@@ -20,6 +21,24 @@ class CarInterface(CarInterfaceBase):
   @staticmethod
   def get_pid_accel_limits(CP, current_speed, cruise_speed):
     return CarControllerParams(CP).ACCEL_MIN, CarControllerParams(CP).ACCEL_MAX
+
+  @staticmethod
+  def init(CP, CP_SP, can_recv, can_send):
+    # 香橙派(RK3588)移植运行在 PC 平台，openpilot 的自动关机逻辑
+    # (system/hardware/hardwared.py -> power_monitoring.should_shutdown) 会在
+    # panda 数据超时(DISCONNECT_TIMEOUT)时把 ignition 误判为熄火，进而置
+    # DoShutdown 触发关机，导致行驶中设备随机重启。此处显式禁用。
+    try:
+      from openpilot.common.params import Params
+    except ImportError:
+      return
+
+    try:
+      params = Params()
+      if not params.get_bool("DisablePowerDown"):
+        params.put_bool("DisablePowerDown", True)
+    except Exception:
+      carlog.warning("failed to set DisablePowerDown")
 
   @staticmethod
   def _get_params(ret: structs.CarParams, candidate: CAR, fingerprint, car_fw, experimental_long: bool, docs: bool) -> structs.CarParams:
