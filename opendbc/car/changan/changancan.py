@@ -103,20 +103,27 @@ def create_244_command_idd(packer, msg: dict, accel, counter, longActive, accTrq
   return packer.make_can_msg("GW_244", 0, values)
 
 
-def create_1BA_command(packer, msg: dict, angle, latCtrlActive, counter):
-  # Both changan_unit_pt.dbc (UNI-T 2022) and changan_pt.dbc (Z6 / Z6 iDD)
-  # define EPS_AngleCmd as a 16-bit Motorola signal with scale 0.1 deg, so the
-  # same encoding works for all platforms: relay the camera frame verbatim and
-  # only update the angle command, lateral-control flag, rolling counter, then
-  # recompute the CRC-8 (init=0x6C) over bytes 0..6.
+def create_1BA_command(packer, msg: dict, angle, latCtrlActive, counter, is_unit: bool):
+  # The packer rebuilds the frame from DBC signals, so any bit not covered by a
+  # signal is zeroed.  Both changan_unit_pt.dbc (UNI-T 2022) and changan_pt.dbc
+  # (Z6 / Z6 iDD) place the angle in bytes 2..4, but with different definitions:
+  #   UNI-T : EPS_AngleCmd 23|24@0- (0.00625,-38403.2) -> raw24 = 0x5DC200 + deg*160
+  #   Z6    : EPS_AngleCmd 31|16@0- (0.1,0)           -> 0.1 deg/LSB
+  # Both match the panda safety decoder, so the same angle value works for all.
+  #
+  # EPS_LatCtrlActive is only defined in the Z6 / Z6 iDD DBC.  For UNI-T its real
+  # bit position is still unknown (the previously assumed byte2 bit0 is part of
+  # the 24-bit angle field and reads back as 1 in every capture), so it must not
+  # be packed - doing so would corrupt the angle and spam "undefined signal".
   values = msg.copy()
   values.update(
     {
       "EPS_AngleCmd": angle,
-      "EPS_LatCtrlActive": latCtrlActive,
       "ACC_RollingCounter_1BA": counter,
     }
   )
+  if not is_unit:
+    values["EPS_LatCtrlActive"] = latCtrlActive
   dat = packer.make_can_msg("GW_1BA", 0, values)[1]
 
   values["ACC_CRCCheck_1BA"] = can_crc.crc_calculate_crc8(dat[:7])

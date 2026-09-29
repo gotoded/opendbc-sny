@@ -53,7 +53,6 @@ class CarController(CarControllerBase):
   def update(self, CC, CC_SP, CS, now_nanos):
     is_unit = self.CP.carFingerprint == CAR.CHANGAN_UNI_T
     actuators = CC.actuators
-    hud_control = CC.hudControl
 
     if self.frame == 0:
       self.counter_244 = CS.counter_244
@@ -77,10 +76,10 @@ class CarController(CarControllerBase):
         apply_angle, self.last_angle, CS.out.vEgoRaw, CS.out.steeringAngleDeg + CS.out.steeringAngleOffsetDeg, CC.latActive, self.params.ANGLE_LIMITS
       )
 
-      can_sends.append(changancan.create_1BA_command(self.packer, CS.sigs1ba, apply_angle, 1, self.counter_1ba))
+      can_sends.append(changancan.create_1BA_command(self.packer, CS.sigs1ba, apply_angle, 1, self.counter_1ba, is_unit))
     else:
       apply_angle = CS.out.steeringAngleDeg
-      can_sends.append(changancan.create_1BA_command(self.packer, CS.sigs1ba, apply_angle, 0, self.counter_1ba))
+      can_sends.append(changancan.create_1BA_command(self.packer, CS.sigs1ba, apply_angle, 0, self.counter_1ba, is_unit))
 
     self.last_angle = apply_angle
 
@@ -113,19 +112,7 @@ class CarController(CarControllerBase):
         accel -= self.slope_daccel
 
         accel = np.clip(accel, self.last_apply_accel - 0.2, self.last_apply_accel + 0.10)
-        if self.last_apply_accel >= 0 and hud_control.leadVisible and hud_control.leadDistanceActual < 30:
-          accel = -0.4
         accel = max(accel, -3.5)
-        if CS.out.vEgoRaw * CV.MS_TO_KPH == 0 and self.last_speed > 0 and hud_control.leadVisible and hud_control.leadDistanceActual > 0:
-          self.stop_lead_distance = hud_control.leadDistanceActual
-        if (
-          self.stop_lead_distance != 0
-          and CS.out.vEgoRaw * CV.MS_TO_KPH == 0
-          and self.last_speed == 0
-          and hud_control.leadVisible
-          and hud_control.leadDistanceActual - self.stop_lead_distance > 1
-        ):
-          accel = 0.5
       if CS.out.vEgoRaw * CV.MS_TO_KPH > 0:
         self.stop_lead_distance = 0
       if accel > 0:

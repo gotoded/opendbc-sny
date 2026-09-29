@@ -76,8 +76,7 @@ BO_ 424 GW_1A8: 8 XXX
 BO_ 442 GW_1BA: 32 XXX
  SG_ ACC_MotorTorqueMinLimitRequest : 7|8@0+ (1,0) [0|255] "" XXX
  SG_ ACC_MotorTorqueMaxLimitRequest : 15|8@0+ (1,0) [0|255] "" XXX
- SG_ EPS_LatCtrlActive : 16|1@0+ (1,0) [0|1] "" XXX
- SG_ EPS_AngleCmd : 31|16@0- (0.1,0) [-3276.8|3276.7] "deg" XXX
+ SG_ EPS_AngleCmd : 23|24@0- (0.00625,-38403.2) [-3276.8|3276.7] "deg" XXX
  SG_ ACC_RollingCounter_1BA : 51|4@0+ (1,0) [0|15] "" XXX
  SG_ ACC_CRCCheck_1BA : 63|8@0+ (1,0) [0|255] "" XXX
 
@@ -201,8 +200,7 @@ CM_ SG_ 407 ESP_EspDisabled "ESP guanbi (ESP disabled, byte0 bit7, 01.csv qidong
 CM_ BO_ 424 "dangwei (gear, 0x1A8 byte1 low nibble: 0x00=N, 0x01-0x07=1-7, 0x09=R, 0x0A=P)";
 CM_ SG_ 424 GearPosition "dangwei";
 CM_ BO_ 442 "ADAS kongzhi mingling (ACC control command GW_1BA, 32 bytes)";
-CM_ SG_ 442 EPS_LatCtrlActive "CESHI kongzhi jihuo (EPS lateral control active flag)";
-CM_ SG_ 442 EPS_AngleCmd "CESHI jiaodu mingling (EPS angle command, 0.1 deg)";
+CM_ SG_ 442 EPS_AngleCmd "jiaodu mingling (EPS angle command, raw24 = 0x5DC200 + deg*160, i.e. 0.00625 deg/LSB with offset -38403.2)";
 CM_ SG_ 518 WheelSpeed_FR "Special raw value 0x4000 = standstill (while 0x187 speed=0x0000); do not decode as vehicle speed.";
 CM_ SG_ 518 WheelSpeed_FL "Special raw value 0x4000 = standstill (while 0x187 speed=0x0000); do not decode as vehicle speed.";
 CM_ SG_ 520 WheelSpeed_RR "Special raw value 0x4000 = standstill (while 0x187 speed=0x0000); do not decode as vehicle speed.";
@@ -255,7 +253,6 @@ VAL_ 382 EPS_LatCtrlAvailabilityStatus 0 "available" 1 "unavailable";
 VAL_ 407 ESP_EspActive 0 "inactive" 1 "active";
 VAL_ 407 ESP_EspDisabled 0 "enabled" 1 "disabled";
 VAL_ 424 GearPosition 0 "N" 1 "D1" 2 "2" 3 "3" 4 "4" 5 "5" 6 "6" 7 "7" 9 "R" 10 "P";
-VAL_ 442 EPS_LatCtrlActive 0 "inactive" 1 "active";
 VAL_ 580 ACC_AEBCtrlType 0 "none" 1 "active";
 VAL_ 580 ACC_FCWPreWarning 0 "no" 1 "yes";
 VAL_ 580 ACC_AccTrqReqActive 0 "no" 1 "yes";
