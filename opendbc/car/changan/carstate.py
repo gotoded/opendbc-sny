@@ -179,15 +179,18 @@ class CarState(CarStateBase):
     self.buttonPlus = res_btn
     self.buttonReduce = set_btn
 
-    # The harness puts the stock ADAS camera on panda bus 2, and
-    # changan_fwd_hook blocks bus2 -> bus0 for 0x1BA/0x244/0x307/0x31A.  On
-    # bus 0 those four messages are therefore only openpilot's own injections,
-    # so reading them from bus 0 would feed our own (initially zero) output
-    # straight back in - e.g. cruiseState.available, decoded from
-    # GW_31A.ACC_IACCHWAEnable, could never become true.  Always take them from
-    # the camera side.  (The 01/02/dangwei captures show them on bus 0 only
-    # because they were recorded without the harness in series.)
-    adas_src = cp_cam
+    # Measured over 45 rlog segments: bus 2 (the camera side, per the harness)
+    # carries the ADAS frames (0x1BA/0x244/0x307/0x31A, 161 distinct IDs) only
+    # while the panda is in elm327 / passthrough mode.  As soon as it is in
+    # changan mode - i.e. while we block and replace those frames - the camera
+    # goes almost completely silent (2 distinct IDs) and bus 2 has no ADAS frames
+    # at all.  Reading bus 2 would therefore come up empty, so the frames are
+    # taken from bus 0, which carries them at 100 Hz (ACC_IACCHWAEnable reads 1
+    # there and cruiseState.available follows).
+    if self.CP.carFingerprint == CAR.CHANGAN_UNI_T:
+      adas_src = cp
+    else:
+      adas_src = cp_cam
     ret.accFaulted = adas_src.vl["GW_244"]["ACC_ACCMode"] == 7 or adas_src.vl["GW_31A"]["ACC_IACCHWAMode"] == 7
     ret.cruiseState.available = adas_src.vl["GW_31A"]["ACC_IACCHWAEnable"] == 1
     ret.cruiseState.speed = self.cruiseSpeed * CV.KPH_TO_MS
