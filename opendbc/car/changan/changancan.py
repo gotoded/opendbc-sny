@@ -107,7 +107,7 @@ def create_1BA_command(packer, msg: dict, angle, latCtrlActive, counter, is_unit
   # The packer rebuilds the frame from DBC signals, so any bit not covered by a
   # signal is zeroed.  Both changan_unit_pt.dbc (UNI-T 2022) and changan_pt.dbc
   # (Z6 / Z6 iDD) place the angle in bytes 2..4, but with different definitions:
-  #   UNI-T : EPS_AngleCmd 23|24@0- (0.00625,-38403.2) -> raw24 = 0x5DC200 + deg*160
+  #   UNI-T : EPS_AngleCmd 23|24@0- (0.0009765625,-6000.5) -> raw24 = 0x5DC200 + deg*1024
   #   Z6    : EPS_AngleCmd 31|16@0- (0.1,0)           -> 0.1 deg/LSB
   # Both match the panda safety decoder, so the same angle value works for all.
   #

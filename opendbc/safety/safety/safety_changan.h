@@ -24,11 +24,24 @@
 #define CHANGAN_UNI_T_FLAG  0x10U  // Changan UNI-T 2022
 
 // ── Steering limits ───────────────────────────────────────────────────────────
-// EPS_AngleCmd: factor 0.1 deg/LSB, max 980 deg → 9800 raw
-// STEER_MAX from values.py = 980 deg
-#define CHANGAN_STEER_ANGLE_MAX 9800    // 980 deg * 10
-// Angle rate limit: 1.4 deg/frame (100Hz) = 14 raw/frame (from ANGLE_LIMITS in values.py)
-#define CHANGAN_STEER_ANGLE_RATE 14     // 1.4 deg * 10 = 14 raw/frame
+// The two DBCs encode EPS_AngleCmd differently, so the units differ per platform:
+//   Z6 / Z6 iDD (changan_pt.dbc)     : 0.1 deg/LSB    -> angle_cmd is in 0.1 deg
+//   UNI-T 2022 (changan_unit_pt.dbc) : 1/1024 deg/LSB -> angle_cmd is in 1/64 deg
+//     (changan_tx_hook divides the 24-bit field by 16, and 1024/16 = 64)
+#define CHANGAN_UNIT_TICKS_PER_DEG 64
+
+// Z6 / Z6 iDD: STEER_MAX from values.py = 980 deg (9800 raw), and the rate limit
+// from ANGLE_LIMITS = 1.4 deg/frame (14 raw at 100Hz)
+#define CHANGAN_STEER_ANGLE_MAX_Z6  9800    // 980 deg * 10
+#define CHANGAN_STEER_ANGLE_RATE_Z6 14      // 1.4 deg * 10 = 14 per frame
+
+// UNI-T 2022:
+//   absolute limit = the vehicle's own SAS range, +/-512 deg (GW_180)
+//   rate limit = 3 deg/frame (300 deg/s): ~2x headroom over openpilot's own
+//     1.4 deg/frame ramp (values.py ANGLE_LIMITS) and ~4x over the fastest
+//     manual steering seen in a 290 s capture (0.78 deg/frame)
+#define CHANGAN_STEER_ANGLE_MAX_UNIT  (512 * CHANGAN_UNIT_TICKS_PER_DEG)  // 32768
+#define CHANGAN_STEER_ANGLE_RATE_UNIT (3 * CHANGAN_UNIT_TICKS_PER_DEG)    // 192
 
 // ── Acceleration limits ───────────────────────────────────────────────────────
 // ACC_ACCTargetAcceleration: factor 0.05 m/s² per LSB
@@ -128,33 +141,51 @@ static bool changan_tx_hook(const CANPacket_t *to_send) {
 
   // ── GW_1BA: lateral angle command ────────────────────────────────────────
   if ((addr == MSG_GW_1BA_TX) && (bus == 0)) {
-    int angle_cmd;
+    int angle_cmd, angle_max, angle_rate;
     if (changan_safety_flags & CHANGAN_UNI_T_FLAG) {
-      // UNI-T 2022 encoding (verified against 01/02.csv):
-      //   EPS_AngleCmd lives in byte2-4, Motorola 24-bit big-endian:
-      //     raw24 = (b2<<16)|(b3<<8)|b4 = 0x5DC200 + angle_raw*16
-      //     angle_raw = angle_deg * 10  (0.1 deg/LSB)
+      // UNI-T 2022: EPS_AngleCmd spans bytes 2..4 as a 24-bit big-endian value
+      //   raw24 = 0x5DC200 + angle_deg * 1024   (1/1024 deg/LSB)
+      // Verified over a 290 s capture: raw24 - 0x5DC200 == GW_180
+      // SAS_SteeringAngle raw * 16, i.e. the same physical angle as 0x180.
+      //   -> angle_cmd = (raw24 - 0x5DC200) / 16 = angle_deg * 64
       const int raw24 = ((int)GET_BYTE(to_send, 2) << 16) | ((int)GET_BYTE(to_send, 3) << 8) | (int)GET_BYTE(to_send, 4);
       angle_cmd = (raw24 - 0x5DC200) / 16;
+      angle_max = CHANGAN_STEER_ANGLE_MAX_UNIT;
+      angle_rate = CHANGAN_STEER_ANGLE_RATE_UNIT;
     } else {
       // Z6 / Z6 iDD: EPS_AngleCmd bits [1..14], factor 0.1 deg/LSB, signed
       const int raw_angle = (int)(((GET_BYTE(to_send, 0) >> 1) | (GET_BYTE(to_send, 1) << 7)) & 0x3FFFU);
       angle_cmd = (raw_angle & 0x2000) ? (raw_angle - 0x4000) : raw_angle;
+      angle_max = CHANGAN_STEER_ANGLE_MAX_Z6;
+      angle_rate = CHANGAN_STEER_ANGLE_RATE_Z6;
     }
-    const uint8_t lat_active = GET_BYTE(to_send, 0) & 0x1U;
 
-    if (lat_active != 0U) {
-      // Angle delta limit (per-frame, ~14 raw = 1.4 deg at 100Hz)
-      const int angle_delta = angle_cmd - changan_desired_angle_last;
-      if ((angle_delta > CHANGAN_STEER_ANGLE_RATE) || (angle_delta < -CHANGAN_STEER_ANGLE_RATE)) {
-        tx = false;
-      }
-      // Absolute angle limit
-      if ((angle_cmd > CHANGAN_STEER_ANGLE_MAX) || (angle_cmd < -CHANGAN_STEER_ANGLE_MAX)) {
-        tx = false;
-      }
+    // GW_1BA carries no usable "lateral control active" bit.  The
+    // reverse-engineered EPS_LatCtrlActive (bit 16) is just the LSB of the
+    // 24-bit angle field, and byte0 - which the old code latched as bit0 - is
+    // ACC_MotorTorqueMinLimitRequest (0xB5 / 0x80), not a flag.  In a 290 s
+    // capture byte5 is always 0, byte6 is the rolling counter, byte7 the CRC
+    // and bytes 8..31 are always 0, so no bit ever toggles with engagement.
+    // The rate limit is therefore applied unconditionally.
+    const int angle_delta = angle_cmd - changan_desired_angle_last;
+
+    if ((angle_delta > angle_rate) || (angle_delta < -angle_rate)) {
+      tx = false;
     }
-    if (tx) {
+    if ((angle_cmd > angle_max) || (angle_cmd < -angle_max)) {
+      tx = false;
+    }
+
+    // Slew `last` toward the command by at most angle_rate per frame.  Updating
+    // it unconditionally stops the reference from freezing: the old code only
+    // updated it when the frame was allowed, so one rejected frame (e.g. the
+    // first frame after engaging at a large steering angle) blocked every later
+    // frame permanently.
+    if (angle_delta > angle_rate) {
+      changan_desired_angle_last += angle_rate;
+    } else if (angle_delta < -angle_rate) {
+      changan_desired_angle_last -= angle_rate;
+    } else {
       changan_desired_angle_last = angle_cmd;
     }
   }
