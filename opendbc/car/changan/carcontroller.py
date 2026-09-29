@@ -83,7 +83,7 @@ class CarController(CarControllerBase):
 
     self.last_angle = apply_angle
 
-    can_sends.append(changancan.create_17E_command(self.packer, CS.sigs17e, CC.longActive, self.counter_17e))
+    can_sends.append(changancan.create_17E_command(self.packer, CS.sigs17e, self.counter_17e))
 
     if self.frame % 2 == 0:
       acctrq = 0 if is_unit else -5000

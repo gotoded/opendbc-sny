@@ -42,32 +42,28 @@ def create_244_command_a05(packer, accel, counter, longActive, accTrq):
 
 def create_244_command(packer, msg: dict, accel, counter, longActive, accTrq, vEgoRaw, is_unit: bool):
   values = msg.copy()
+  updates = {
+    "ACC_ACCTargetAcceleration": accel,
+    "ACC_RollingCounter_24E": counter,
+    "ACC_RollingCounter_25E": counter,
+    "ACC_AccTrqReq": accTrq,
+    "ACC_AccTrqReqActive": 1 if longActive and accel >= 0 else 0,
+  }
   if is_unit:
-    # UNIT 2022 DBC (changan_unit_pt.dbc): ACC_ACCMode=54|3@0+,
-    # ACC_AccTrqReq=103|16@0+ (Motorola, unsigned).  Keep camera-relayed
-    # ACC_ACCMode; only update accel/counter/torque.
-    values.update(
-      {
-        "ACC_ACCTargetAcceleration": accel,
-        "ACC_RollingCounter_24E": counter,
-        "ACC_RollingCounter_25E": counter,
-        "ACC_AccTrqReq": accTrq,
-        "ACC_AccTrqReqActive": 1 if longActive and accel >= 0 else 0,
-      }
-    )
+    # UNIT 2022 DBC (changan_unit_pt.dbc): ACC_ACCMode=54|3@0+, ACC_AccTrqReq=103|16@0+.
+    # The camera's own mode is relayed while openpilot is not driving the car,
+    # and forced to 3 (active) once it is - this port takes over longitudinal
+    # (pcmCruise=False + openpilotLongitudinalControl=True), so the vehicle's
+    # ACC has to be told to accept our acceleration requests.
+    if longActive:
+      updates["ACC_ACCMode"] = 3
   else:
     # Z6 / Z6 iDD original behavior
-    values.update(
-      {
-        "ACC_ACCTargetAcceleration": accel,
-        "ACC_CDDActive": 1 if longActive and accel < 0 else 0,
-        "ACC_RollingCounter_24E": counter,
-        "ACC_RollingCounter_25E": counter,
-        "ACC_ACCMode": 3 if longActive else 2,
-        "ACC_AccTrqReq": accTrq,
-        "ACC_AccTrqReqActive": 1 if longActive and accel >= 0 else 0,
-      }
-    )
+    updates.update({
+      "ACC_CDDActive": 1 if longActive and accel < 0 else 0,
+      "ACC_ACCMode": 3 if longActive else 2,
+    })
+  values.update(updates)
   dat = packer.make_can_msg("GW_244", 0, values)[1]
   values["ACC_CRCCheck_24E"] = can_crc.crc_calculate_crc8(dat[:7])
   values["ACC_CRCCheck_25E"] = can_crc.crc_calculate_crc8(dat[8:15])
@@ -130,16 +126,13 @@ def create_1BA_command(packer, msg: dict, angle, latCtrlActive, counter, is_unit
   return packer.make_can_msg("GW_1BA", 0, values)
 
 
-def create_17E_command(packer, msg: dict, longActive, counter):
-  # Relay EPS sensor frame (bus 2); bump counter, recompute CRC.
-  # msg comes from CS.sigs17e (DBC-defined signals only).
+def create_17E_command(packer, msg: dict, counter):
+  # Relay the EPS sensor frame to the camera side (bus 2) verbatim: only the
+  # rolling counter is refreshed and the CRC-8 recomputed, so every other
+  # signal (including EPS_MeasuredTorsionBarTorque) keeps the EPS's real value.
+  # msg comes from CS.sigs17e, i.e. the EPS frame received on bus 0.
   values = msg.copy()
-  values.update(
-    {
-      "EPS_MeasuredTorsionBarTorque": msg.get("EPS_MeasuredTorsionBarTorque", 0) + 1 if longActive else msg.get("EPS_MeasuredTorsionBarTorque", 0),
-      "EPS_RollingCounter_17E": counter,
-    }
-  )
+  values["EPS_RollingCounter_17E"] = counter
   dat = packer.make_can_msg("GW_17E", 0, values)[1]
   values["EPS_CRCCheck_17E"] = can_crc.crc_calculate_crc8(dat[:7])
 

@@ -179,14 +179,15 @@ class CarState(CarStateBase):
     self.buttonPlus = res_btn
     self.buttonReduce = set_btn
 
-    # NOTE: the UNI-T 2022 captures (01/02/dangwei.csv) show the ADAS
-    # command messages (0x1BA/0x244/0x307/0x31A) only on bus 0 (100Hz, relayed
-    # by the gateway) - bus 2 (cam) is silent except the first 0.1s of the
-    # capture.  Z6 / Z6 iDD keep reading them from bus 2 (cam).
-    if self.CP.carFingerprint == CAR.CHANGAN_UNI_T:
-      adas_src = cp
-    else:
-      adas_src = cp_cam
+    # The harness puts the stock ADAS camera on panda bus 2, and
+    # changan_fwd_hook blocks bus2 -> bus0 for 0x1BA/0x244/0x307/0x31A.  On
+    # bus 0 those four messages are therefore only openpilot's own injections,
+    # so reading them from bus 0 would feed our own (initially zero) output
+    # straight back in - e.g. cruiseState.available, decoded from
+    # GW_31A.ACC_IACCHWAEnable, could never become true.  Always take them from
+    # the camera side.  (The 01/02/dangwei captures show them on bus 0 only
+    # because they were recorded without the harness in series.)
+    adas_src = cp_cam
     ret.accFaulted = adas_src.vl["GW_244"]["ACC_ACCMode"] == 7 or adas_src.vl["GW_31A"]["ACC_IACCHWAMode"] == 7
     ret.cruiseState.available = adas_src.vl["GW_31A"]["ACC_IACCHWAEnable"] == 1
     ret.cruiseState.speed = self.cruiseSpeed * CV.KPH_TO_MS

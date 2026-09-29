@@ -49,6 +49,11 @@
 // ACCEL_MIN = -3.5 m/s² → -70 raw
 #define CHANGAN_ACCEL_MAX   40    //  2.0 m/s² * 20
 #define CHANGAN_ACCEL_MIN  -70    // -3.5 m/s² * 20
+// UNI-T 2022 encodes ACC_ACCTargetAcceleration differently
+// (changan_unit_pt.dbc: 7|16@0- (0.001,-25.6), 16-bit big-endian over bytes 0..1):
+//   raw = (accel + 25.6) * 1000  ->  +2.0 m/s² = 27600, -3.5 m/s² = 22100
+#define CHANGAN_UNIT_ACCEL_MAX 27600   //  2.0 m/s²
+#define CHANGAN_UNIT_ACCEL_MIN 22100   // -3.5 m/s²
 
 // ── RX messages ───────────────────────────────────────────────────────────────
 // bus 0 (ESC/pt CAN)
@@ -193,11 +198,11 @@ static bool changan_tx_hook(const CANPacket_t *to_send) {
   // ── GW_244: longitudinal acceleration command ─────────────────────────────
   if ((addr == MSG_GW_244_TX) && (bus == 0)) {
     if (changan_safety_flags & CHANGAN_UNI_T_FLAG) {
-      // UNI-T 2022: ACC_ACCTargetAcceleration = byte0 unsigned 8-bit,
-      //   physical = raw*0.05 - 5.0  (raw 100 = 0 m/s²)
-      //   raw = (accel + 5.0)/0.05  →  ACCEL_MAX 2.0 → 140, ACCEL_MIN -3.5 → 30
-      const int accel_raw = (int)GET_BYTE(to_send, 0);
-      if ((accel_raw > 140) || (accel_raw < 30)) {
+      // UNI-T 2022: ACC_ACCTargetAcceleration is a 16-bit big-endian field over
+      // bytes 0..1 (changan_unit_pt.dbc: 7|16@0- (0.001,-25.6)).  Reading only
+      // byte0 - as this used to - bounds the wrong quantity entirely.
+      const int accel_raw = ((int)GET_BYTE(to_send, 0) << 8) | (int)GET_BYTE(to_send, 1);
+      if ((accel_raw > CHANGAN_UNIT_ACCEL_MAX) || (accel_raw < CHANGAN_UNIT_ACCEL_MIN)) {
         tx = false;
       }
     } else {
