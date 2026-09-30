@@ -10,7 +10,7 @@ from opendbc.car.fw_query_definitions import FwQueryConfig, Request, StdQueries
 
 
 Ecu = structs.CarParams.Ecu
-MIN_ACC_SPEED = 19.0  # m/s
+MIN_ACC_SPEED = 20.0  # m/s
 
 
 class CanBus:
