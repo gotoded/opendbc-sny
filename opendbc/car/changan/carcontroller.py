@@ -78,7 +78,7 @@ class CarController(CarControllerBase):
 
       can_sends.append(changancan.create_1BA_command(self.packer, CS.sigs1ba, apply_angle, 1, self.counter_1ba, is_unit))
     else:
-      apply_angle = CS.out.steeringAngleDeg
+      apply_angle = CS.sigs1ba.get("EPS_AngleCmd", 0.0)
       can_sends.append(changancan.create_1BA_command(self.packer, CS.sigs1ba, apply_angle, 0, self.counter_1ba, is_unit))
 
     self.last_angle = apply_angle
