@@ -65,23 +65,26 @@ class CarController(CarControllerBase):
     self.counter_1ba = int(self.counter_1ba + 1) & 0xF
     self.counter_17e = int(self.counter_17e + 1) & 0xF
 
-    if CC.latActive and not CS.steeringPressed:
-      apply_angle = actuators.steeringAngleDeg + CS.out.steeringAngleOffsetDeg
-      apply_angle = np.clip(apply_angle, -self.max_steering_angle, self.max_steering_angle)
+    if CC.latActive:
+      if not CS.steeringPressed:
+        apply_angle = actuators.steeringAngleDeg + CS.out.steeringAngleOffsetDeg
+        apply_angle = np.clip(apply_angle, -self.max_steering_angle, self.max_steering_angle)
 
-      self.filtered_steering_angle = self.steering_smoothing_factor * self.filtered_steering_angle + (1 - self.steering_smoothing_factor) * apply_angle
-      apply_angle = self.filtered_steering_angle
+        self.filtered_steering_angle = self.steering_smoothing_factor * self.filtered_steering_angle + (1 - self.steering_smoothing_factor) * apply_angle
+        apply_angle = self.filtered_steering_angle
 
-      apply_angle = apply_std_steer_angle_limits(
-        apply_angle, self.last_angle, CS.out.vEgoRaw, CS.out.steeringAngleDeg + CS.out.steeringAngleOffsetDeg, CC.latActive, self.params.ANGLE_LIMITS
-      )
+        apply_angle = apply_std_steer_angle_limits(
+          apply_angle, self.last_angle, CS.out.vEgoRaw, CS.out.steeringAngleDeg + CS.out.steeringAngleOffsetDeg, CC.latActive, self.params.ANGLE_LIMITS
+        )
+      else:
+        apply_angle = self.last_angle
 
       can_sends.append(changancan.create_1BA_command(self.packer, CS.sigs1ba, apply_angle, 1, self.counter_1ba, is_unit))
-    else:
-      apply_angle = CS.sigs1ba.get("EPS_AngleCmd", 0.0)
-      can_sends.append(changancan.create_1BA_command(self.packer, CS.sigs1ba, apply_angle, 0, self.counter_1ba, is_unit))
-
-    self.last_angle = apply_angle
+      self.last_angle = apply_angle
+    # 未接管时不发 0x1BA。bus 0 上本来就有车辆自己的一条 0x1BA（实测 openpilot
+    # 一个 TX 帧都不发时它仍在，100 Hz、单一发送者），再注入一份会让车机在同一
+    # ID 上看到两个发送者、两套滚动计数器，从而报「车道辅助系统故障」。
+    # 未激活时不发替代帧，也与官方 port 的做法一致。
 
     can_sends.append(changancan.create_17E_command(self.packer, CS.sigs17e, self.counter_17e))
 
