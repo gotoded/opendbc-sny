@@ -161,10 +161,11 @@ class CarController(CarControllerBase):
       accel = int(accel / 0.05) * 0.05
 
       self.counter_244 = int(self.counter_244 + 1) & 0xF
-      if self.CP.carFingerprint == CAR.CHANGAN_Z6_IDD:
-        can_sends.append(changancan.create_244_command_idd(self.packer, CS.sigs244, accel, self.counter_244, CC.longActive, acctrq, CS.out.vEgoRaw))
-      else:
-        can_sends.append(changancan.create_244_command(self.packer, CS.sigs244, accel, self.counter_244, CC.longActive, acctrq, CS.out.vEgoRaw, is_unit))
+      if CC.longActive:
+        if self.CP.carFingerprint == CAR.CHANGAN_Z6_IDD:
+          can_sends.append(changancan.create_244_command_idd(self.packer, CS.sigs244, accel, self.counter_244, CC.longActive, acctrq, CS.out.vEgoRaw))
+        else:
+          can_sends.append(changancan.create_244_command(self.packer, CS.sigs244, accel, self.counter_244, CC.longActive, acctrq, CS.out.vEgoRaw, is_unit))
 
       self.last_apply_accel = accel
       self.last_acctrq = acctrq
@@ -172,8 +173,13 @@ class CarController(CarControllerBase):
     if self.frame % 10 == 0:
       self.counter_307 = int(self.counter_307 + 1) & 0xF
       self.counter_31a = int(self.counter_31a + 1) & 0xF
-      can_sends.append(changancan.create_307_command(self.packer, CS.sigs307, self.counter_307, CS.out.cruiseState.speedCluster * CV.MS_TO_KPH))
-      can_sends.append(changancan.create_31A_command(self.packer, CS.sigs31a, self.counter_31a, CC.longActive, CS.steeringPressed))
+      # 与 0x1BA 同理：未激活时不发替代帧。bus 0 上车辆自己就有 0x244/0x307/0x31A
+      # （实测 openpilot 一个 TX 帧都不发时它们仍在，速率 50/10/10 Hz），再发一份
+      # 只会让车机在同一 ID 上看到两个发送者。
+      if CC.longActive:
+        can_sends.append(changancan.create_307_command(self.packer, CS.sigs307, self.counter_307, CS.out.cruiseState.speedCluster * CV.MS_TO_KPH))
+      if CC.latActive or CC.longActive:
+        can_sends.append(changancan.create_31A_command(self.packer, CS.sigs31a, self.counter_31a, CC.longActive, CS.steeringPressed))
 
     new_actuators = actuators.as_builder()
     new_actuators.steeringAngleDeg = float(self.last_angle)
