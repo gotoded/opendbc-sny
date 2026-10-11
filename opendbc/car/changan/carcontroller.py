@@ -81,10 +81,11 @@ class CarController(CarControllerBase):
 
       can_sends.append(changancan.create_1BA_command(self.packer, CS.sigs1ba, apply_angle, 1, self.counter_1ba, is_unit))
       self.last_angle = apply_angle
-    # 未接管时不发 0x1BA。bus 0 上本来就有车辆自己的一条 0x1BA（实测 openpilot
-    # 一个 TX 帧都不发时它仍在，100 Hz、单一发送者），再注入一份会让车机在同一
-    # ID 上看到两个发送者、两套滚动计数器，从而报「车道辅助系统故障」。
-    # 未激活时不发替代帧，也与官方 port 的做法一致。
+    else:
+      # 未接管横向控制：将 bus2 收到的原始 0x1BA 原样转发到 bus0，
+      # 保持原始数据、计数器和 CRC 不变。DBC 中 RAW_1BA_* 信号覆盖了
+      # bytes 8..31，确保 packer 重建时逐字节无损。
+      can_sends.append(self.packer.make_can_msg("GW_1BA", 0, CS.sigs1ba))
 
     can_sends.append(changancan.create_17E_command(self.packer, CS.sigs17e, self.counter_17e))
 
@@ -166,6 +167,9 @@ class CarController(CarControllerBase):
           can_sends.append(changancan.create_244_command_idd(self.packer, CS.sigs244, accel, self.counter_244, CC.longActive, acctrq, CS.out.vEgoRaw))
         else:
           can_sends.append(changancan.create_244_command(self.packer, CS.sigs244, accel, self.counter_244, CC.longActive, acctrq, CS.out.vEgoRaw, is_unit))
+      else:
+        # 未接管纵向控制：原样转发原始 0x244
+        can_sends.append(self.packer.make_can_msg("GW_244", 0, CS.sigs244))
 
       self.last_apply_accel = accel
       self.last_acctrq = acctrq
@@ -173,13 +177,16 @@ class CarController(CarControllerBase):
     if self.frame % 10 == 0:
       self.counter_307 = int(self.counter_307 + 1) & 0xF
       self.counter_31a = int(self.counter_31a + 1) & 0xF
-      # 与 0x1BA 同理：未激活时不发替代帧。bus 0 上车辆自己就有 0x244/0x307/0x31A
-      # （实测 openpilot 一个 TX 帧都不发时它们仍在，速率 50/10/10 Hz），再发一份
-      # 只会让车机在同一 ID 上看到两个发送者。
       if CC.longActive:
         can_sends.append(changancan.create_307_command(self.packer, CS.sigs307, self.counter_307, CS.out.cruiseState.speedCluster * CV.MS_TO_KPH))
+      else:
+        # 未接管纵向控制：原样转发原始 0x307
+        can_sends.append(self.packer.make_can_msg("GW_307", 0, CS.sigs307))
       if CC.latActive or CC.longActive:
         can_sends.append(changancan.create_31A_command(self.packer, CS.sigs31a, self.counter_31a, CC.longActive, CS.steeringPressed))
+      else:
+        # 未接管任何控制：原样转发原始 0x31A
+        can_sends.append(self.packer.make_can_msg("GW_31A", 0, CS.sigs31a))
 
     new_actuators = actuators.as_builder()
     new_actuators.steeringAngleDeg = float(self.last_angle)
