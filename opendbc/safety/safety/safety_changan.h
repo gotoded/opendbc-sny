@@ -119,12 +119,13 @@ static RxCheck changan_rx_checks[] = {
   {.msg = {{MSG_GW_338,  0, 8,  .ignore_checksum = true, .ignore_counter = true, .frequency = 20U},
            {MSG_GW_39B,  0, 8,  .ignore_checksum = true, .ignore_counter = true, .frequency = 10U},
            {0}}},
-  // These messages are relayed on bus 0 by the gateway (UNI-T 2022 captures
-  // show them only on bus 0; bus 2/cam is silent)
-  {.msg = {{MSG_GW_1BA,  0, 32, .ignore_checksum = true, .ignore_counter = true, .frequency = 100U}, {0}, {0}}},
-  {.msg = {{MSG_GW_244,  0, 32, .ignore_checksum = true, .ignore_counter = true, .frequency = 50U}, {0}, {0}}},
-  {.msg = {{MSG_GW_307,  0, 64, .ignore_checksum = true, .ignore_counter = true, .frequency = 10U}, {0}, {0}}},
-  {.msg = {{MSG_GW_31A,  0, 64, .ignore_checksum = true, .ignore_counter = true, .frequency = 10U}, {0}, {0}}},
+  // ADAS frames (0x1BA/0x244/0x307/0x31A) are received on bus 2 (camera side).
+  // fwd_hook blocks them on the bus2→bus0 path, so openpilot's replacement
+  // frames on bus 0 are the only ones the car sees. Same topology as Z6.
+  {.msg = {{MSG_GW_1BA,  2, 32, .ignore_checksum = true, .ignore_counter = true, .frequency = 100U}, {0}, {0}}},
+  {.msg = {{MSG_GW_244,  2, 32, .ignore_checksum = true, .ignore_counter = true, .frequency = 50U}, {0}, {0}}},
+  {.msg = {{MSG_GW_307,  2, 64, .ignore_checksum = true, .ignore_counter = true, .frequency = 10U}, {0}, {0}}},
+  {.msg = {{MSG_GW_31A,  2, 64, .ignore_checksum = true, .ignore_counter = true, .frequency = 10U}, {0}, {0}}},
 };
 
 // ── Safety hook: init ─────────────────────────────────────────────────────────
