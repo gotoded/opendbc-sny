@@ -12,6 +12,12 @@ SteerControlType = structs.CarParams.SteerControlType
 VisualAlert = structs.CarControl.HUDControl.VisualAlert
 
 
+# ── 诊断模式（临时）────────────────────────────────────────────────────────────
+# True: 只监听，不发送任何报文。配合 panda 的 CHANGAN_DIAG_LISTEN_ONLY，用于确认
+#      0x1BA/0x1A8/0x244/0x31A 由哪个控制器发出。确认完毕后改回 False。
+LISTEN_ONLY = True
+
+
 class CarController(CarControllerBase):
   def __init__(self, dbc_names, CP, CP_SP):
     super().__init__(dbc_names, CP, CP_SP)
@@ -53,6 +59,13 @@ class CarController(CarControllerBase):
   def update(self, CC, CC_SP, CS, now_nanos):
     is_unit = self.CP.carFingerprint == CAR.CHANGAN_UNI_T
     actuators = CC.actuators
+
+    if LISTEN_ONLY:
+      # 诊断模式：只监听，不发送任何报文，仅回传当前执行器状态。
+      new_actuators = actuators.as_builder()
+      new_actuators.steeringAngleDeg = float(self.last_angle)
+      new_actuators.accel = float(self.last_apply_accel)
+      return new_actuators, []
 
     if self.frame == 0:
       self.counter_244 = CS.counter_244

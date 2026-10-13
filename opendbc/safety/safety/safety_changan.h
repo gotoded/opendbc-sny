@@ -23,6 +23,12 @@
 #define CHANGAN_Z6_IDD_FLAG 0x4U   // Changan Z6 IDD variant
 #define CHANGAN_UNI_T_FLAG  0x10U  // Changan UNI-T 2022
 
+// ── 诊断模式（临时）──────────────────────────────────────────────────────────
+// 1 = 只监听：禁止一切发送（tx_hook 全部拒绝）与硬件转发（disable_forwarding），
+//     panda 仍接收全部报文并上报主机，用于确认 0x1BA/0x1A8/0x244/0x31A 的发送控制器。
+//     确认完毕后改回 0 即可恢复正常拦截/替换行为。
+#define CHANGAN_DIAG_LISTEN_ONLY 1
+
 // ── Steering limits ───────────────────────────────────────────────────────────
 // The two DBCs encode EPS_AngleCmd differently, so the units differ per platform:
 //   Z6 / Z6 iDD (changan_pt.dbc)     : 0.1 deg/LSB    -> angle_cmd is in 0.1 deg
@@ -132,7 +138,12 @@ static RxCheck changan_rx_checks[] = {
 static safety_config changan_init(uint16_t param) {
   changan_safety_flags = param;
   changan_desired_angle_last = 0;
-  return BUILD_SAFETY_CFG(changan_rx_checks, CHANGAN_TX_MSGS);
+  safety_config cfg = BUILD_SAFETY_CFG(changan_rx_checks, CHANGAN_TX_MSGS);
+#if CHANGAN_DIAG_LISTEN_ONLY
+  // 诊断模式：禁止硬件转发（bus0<->bus2 双向均不转发），发送由 tx_hook 全部拒绝。
+  cfg.disable_forwarding = true;
+#endif
+  return cfg;
 }
 
 // ── Safety hook: TX allowed ───────────────────────────────────────────────────
@@ -141,6 +152,11 @@ static safety_config changan_init(uint16_t param) {
 //   2. Acceleration limits    (GW_244)
 // Note: TX whitelist is already checked by safety_tx_hook in safety.h
 static bool changan_tx_hook(const CANPacket_t *to_send) {
+  // 诊断模式：只监听，拒绝一切发送（见 CHANGAN_DIAG_LISTEN_ONLY）。
+  if (CHANGAN_DIAG_LISTEN_ONLY) {
+    return false;
+  }
+
   const int addr = GET_ADDR(to_send);
   const int bus  = GET_BUS(to_send);
   bool tx = true;
